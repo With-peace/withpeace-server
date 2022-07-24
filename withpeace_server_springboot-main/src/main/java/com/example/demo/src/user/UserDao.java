@@ -26,13 +26,6 @@ public class UserDao {
         // name, phoneNum, email, password, signupType, userLevel
         String createUserRequestQuery = "insert into UserRequest (name, phoneNum, email, password, signupType, userLevel) VALUES (?,?,?,?,?,?)";
         String userLevel = "Manager";
-//        Object[] createUserRequestParams = new Object[]{
-//                postUserManagerReq.getName(),
-//                postUserManagerReq.getPhoneNum(),
-//                postUserManagerReq.getEmail(),
-//                postUserManagerReq.getPassword(),
-//                postUserManagerReq.getSignupType(),
-//                userLevel};
 
         // 이메일 주소의 @는 MySQL에서 SYNTAX 오류를 발생시킴
         // @뒤로 작은 따옴표를 붙여 스트링으로 들어가도록 해야함
