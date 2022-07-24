@@ -1,12 +1,11 @@
 package com.example.demo.src.user;
 
 
-import com.example.demo.src.user.model.GetUserRes;
-import com.example.demo.src.user.model.PatchUserReq;
-import com.example.demo.src.user.model.PostUserReq;
+import com.example.demo.src.user.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -21,52 +20,66 @@ public class UserDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    public List<GetUserRes> getUsers(){
-        String getUsersQuery = "select userIdx,name,nickName,email from User";
-        return this.jdbcTemplate.query(getUsersQuery,
-                (rs,rowNum) -> new GetUserRes(
-                        rs.getInt("userIdx"),
-                        rs.getString("name"),
-                        rs.getString("nickName"),
-                        rs.getString("email")
-                ));
+    /** 관리자 회원가입 - UserRequest **/
+    public int postUserManager(PostUserManagerReq postUserManagerReq){
+        // Post - UserRequest
+        // name, phoneNum, email, password, signupType, userLevel
+        String createUserRequestQuery = "insert into UserRequest (name, phoneNum, email, password, signupType, userLevel) VALUES (?,?,?,?,?,?)";
+        String userLevel = "Manager";
+//        Object[] createUserRequestParams = new Object[]{
+//                postUserManagerReq.getName(),
+//                postUserManagerReq.getPhoneNum(),
+//                postUserManagerReq.getEmail(),
+//                postUserManagerReq.getPassword(),
+//                postUserManagerReq.getSignupType(),
+//                userLevel};
+
+        // 이메일 주소의 @는 MySQL에서 SYNTAX 오류를 발생시킴
+        // @뒤로 작은 따옴표를 붙여 스트링으로 들어가도록 해야함
+        // ex) “sj1234’+’@naver.com’
+        String email = postUserManagerReq.getEmail();
+        int cut = 0;
+        for(int i=0; i<email.length(); i++){
+            if(email.charAt(i) == '@'){
+                cut = i;
+                break;
+            }
+        }
+        String email1 = email.substring(0, cut);
+        String email2 = email.substring(cut);
+
+        Object[] createUserRequestParams = new Object[]{
+                postUserManagerReq.getName(),
+                postUserManagerReq.getPhoneNum(),
+                email1 + email2,
+                postUserManagerReq.getPassword(),
+                postUserManagerReq.getSignupType(),
+                userLevel};
+
+        this.jdbcTemplate.update(createUserRequestQuery, createUserRequestParams);
+
+        String lastInsertIdQuery = "select last_insert_id()";
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
+    }
+    /** 관리자 회원가입 - Building **/
+    public int postBuilding(PostUserManagerReq postUserManagerReq, String inviteCode){
+        // Post - Building
+        // name, address, inviteCode
+        String createBuildingQuery = "insert into Building (name, address, inviteCode) VALUES (?,?,?)";
+        Object[] createBuildingParams = new Object[]{
+                postUserManagerReq.getBuildingName(),
+                postUserManagerReq.getAddress(),
+                inviteCode
+        };
+        this.jdbcTemplate.update(createBuildingQuery, createBuildingParams);
+
+        String lastInsertIdQuery = "select last_insert_id()";
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
     }
 
-    public GetUserRes getUsersByEmail(String email){
-        String getUsersByEmailQuery = "select userIdx,name,nickName,email from User where email=?";
-        String getUsersByEmailParams = email;
-        return this.jdbcTemplate.queryForObject(getUsersByEmailQuery,
-                (rs, rowNum) -> new GetUserRes(
-                        rs.getInt("userIdx"),
-                        rs.getString("name"),
-                        rs.getString("nickName"),
-                        rs.getString("email")),
-                getUsersByEmailParams);
-    }
 
-
-    public GetUserRes getUsersByIdx(int userIdx){
-        String getUsersByIdxQuery = "select userIdx,name,nickName,email from User where userIdx=?";
-        int getUsersByIdxParams = userIdx;
-        return this.jdbcTemplate.queryForObject(getUsersByIdxQuery,
-                (rs, rowNum) -> new GetUserRes(
-                        rs.getInt("userIdx"),
-                        rs.getString("name"),
-                        rs.getString("nickName"),
-                        rs.getString("email")),
-                getUsersByIdxParams);
-    }
-
-    public int createUser(PostUserReq postUserReq){
-        String createUserQuery = "insert into User (name, nickName, phone, email, password) VALUES (?,?,?,?,?)";
-        Object[] createUserParams = new Object[]{postUserReq.getName(), postUserReq.getNickName(),postUserReq.getPhone(), postUserReq.getEmail(), postUserReq.getPassword()};
-        this.jdbcTemplate.update(createUserQuery, createUserParams);
-
-        String lastInserIdQuery = "select last_insert_id()";
-        return this.jdbcTemplate.queryForObject(lastInserIdQuery,int.class);
-    }
-
-    public int checkEmail(String email){
+    /** 관리자,주민 회원가입 - User 이메일 중복확인 **/
+    public int checkUserEmail(String email){
         String checkEmailQuery = "select exists(select email from User where email = ?)";
         String checkEmailParams = email;
         return this.jdbcTemplate.queryForObject(checkEmailQuery,
@@ -74,13 +87,32 @@ public class UserDao {
                 checkEmailParams);
 
     }
+    /** 관리자,주민 회원가입 - UserRequest 이메일 중복확인 **/
+    public int checkUserRequestEmail(String email){
+        String checkEmailQuery = "select exists(select email from UserRequest where email = ?)";
+        String checkEmailParams = email;
+        return this.jdbcTemplate.queryForObject(checkEmailQuery,
+                int.class,
+                checkEmailParams);
 
-    public int modifyUserName(PatchUserReq patchUserReq){
-        String modifyUserNameQuery = "update User set nickName = ? where userIdx = ? ";
-        Object[] modifyUserNameParams = new Object[]{patchUserReq.getNickName(), patchUserReq.getUserIdx()};
-
-        return this.jdbcTemplate.update(modifyUserNameQuery,modifyUserNameParams);
     }
+
+    /** 관리자 회원가입 - 초대코드 중복확인 **/
+    public int checkInviteCode(String inviteCode){
+        String checkInviteCodeQuery = "select exists(select inviteCode from Building where inviteCode = ?)";
+        String checkInviteCodeParams = inviteCode;
+        return this.jdbcTemplate.queryForObject(checkInviteCodeQuery,
+                int.class,
+                checkInviteCodeParams);
+
+    }
+//
+//    public int modifyUserName(PatchUserReq patchUserReq){
+//        String modifyUserNameQuery = "update User set nickName = ? where userIdx = ? ";
+//        Object[] modifyUserNameParams = new Object[]{patchUserReq.getNickName(), patchUserReq.getUserIdx()};
+//
+//        return this.jdbcTemplate.update(modifyUserNameQuery,modifyUserNameParams);
+//    }
 
 
 

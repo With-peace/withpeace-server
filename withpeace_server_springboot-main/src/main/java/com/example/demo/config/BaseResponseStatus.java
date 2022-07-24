@@ -26,9 +26,21 @@ public enum BaseResponseStatus {
     USERS_EMPTY_USER_ID(false, 2010, "유저 아이디 값을 확인해주세요."),
 
     // [POST] /users
-    POST_USERS_EMPTY_EMAIL(false, 2015, "이메일을 입력해주세요."),
-    POST_USERS_INVALID_EMAIL(false, 2016, "이메일 형식을 확인해주세요."),
-    POST_USERS_EXISTS_EMAIL(false,2017,"중복된 이메일입니다."),
+    POST_USERS_EMPTY_NAME(false, 2015, "이름을 입력해주세요."),
+    POST_USERS_EMPTY_PHONENUM(false, 2016, "휴대폰 번호를 입력해주세요."),
+    POST_USERS_INVALID_PHONENUM(false, 2017, "휴대폰 인증을 완료해주세요."),
+    POST_USERS_EMPTY_EMAIL(false, 2018, "이메일을 입력해주세요."),
+    POST_USERS_INVALID_EMAIL(false, 2019, "이메일 형식을 확인해주세요."),
+    POST_USERS_EXISTS_EMAIL(false,2020,"중복된 이메일입니다."),
+    POST_USERS_EMPTY_PASSWORD(false, 2021, "비밀번호를 입력해주세요."),
+    POST_USERS_INVALID_PASSWORD(false, 2022, "비밀번호 형식을 확인해주세요."),
+
+    // [POST] /users/manager
+    POST_USERS_MANAGER_EMPTY_ADDRESS(false, 2023, "주소를 입력해주세요."),
+    POST_USERS_MANAGER_EMPTY_BUILDINGNAME(false, 2024, "건물 이름 입력해주세요."),
+
+    // [POST] /auth/phoneAuthOk
+    POST_AUTH_SESSION_TIMEOUT(false, 2025, "인증번호가 만료되었습니다."),
 
 
 
