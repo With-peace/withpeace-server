@@ -14,6 +14,7 @@ import static com.example.demo.utils.ValidationRegex.*;
 
 import java.lang.*;
 import java.sql.SQLException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -86,6 +87,41 @@ public class UserController {
         try {
             PostUserManagerRes PostUserManagerRes = userService.createManagerReq(postUserManagerReq);
             return new BaseResponse<>(PostUserManagerRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+
+    /**
+     * 회원가입 - 이메일 중복확인 API
+     * [GET] /users/signup/checkEmail
+     *
+     * @return BaseResponse<GetEmailCheck>
+     */
+    @ResponseBody
+    @GetMapping("/signup/checkEmail")
+    public BaseResponse<GetEmailCheck> checkEmail(@RequestBody Map<String, String> email) {
+
+        // 이메일 입력하지 않았을 때
+        if (email.get("email") == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
+        }
+        // 이메일 정규표현
+        if (!isRegexEmail(email.get("email"))) {
+            return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
+        }
+
+        try {
+            GetEmailCheck getEmailCheck = new GetEmailCheck("F");
+
+            // 이메일 중복 확인 - User, UserRequest
+            if(userProvider.checkUserEmail(email.get("email")) == 1
+                    || userProvider.checkUserRequestEmail(email.get("email")) == 1){
+                getEmailCheck.setCheckEmail("T");
+            }
+            return new BaseResponse<>(getEmailCheck);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }
