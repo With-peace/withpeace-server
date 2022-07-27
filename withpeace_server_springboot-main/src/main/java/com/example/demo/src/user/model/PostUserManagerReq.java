@@ -15,5 +15,5 @@ public class PostUserManagerReq {
     private String password;
     private String address;
     private String buildingName;
-    private String signupType;
+    private String agreeInfo;
 }

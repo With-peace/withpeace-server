@@ -36,7 +36,7 @@ public class UserController {
     }
 
     /**
-     * 관리자 회원가입 API
+     * 관리자 일반 회원가입 API
      * [POST] /users/signup/manager
      *
      * @return BaseResponse<PostUserManagerRes>
@@ -82,6 +82,11 @@ public class UserController {
         // 건물 이름 입력하지 않았을 때
         if (postUserManagerReq.getBuildingName() == null) {
             return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_BUILDINGNAME);
+        }
+        // 정보 이용 동의하지 않았을 때
+        if (postUserManagerReq.getAgreeInfo().equals("T") == false || postUserManagerReq.getPhoneNumCheck() == null) {
+            System.out.println("개인정보 수집 및 이용에 동의 필요");
+            return new BaseResponse<>(POST_USERS_EMPTY_AGREEINFO);
         }
 
         try {

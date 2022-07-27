@@ -21,10 +21,11 @@ public class UserDao {
     }
 
     /** 관리자 회원가입 - UserRequest **/
-    public int postUserManager(PostUserManagerReq postUserManagerReq){
+    public int postUserManager(PostUserManagerReq postUserManagerReq, int buildingIdx){
         // Post - UserRequest
         // name, phoneNum, email, password, signupType, userLevel
-        String createUserRequestQuery = "insert into UserRequest (name, phoneNum, email, password, signupType, userLevel) VALUES (?,?,?,?,?,?)";
+        String createUserRequestQuery = "insert into UserRequest (buildingIdx, name, phoneNum, email, password, signupType, userLevel) VALUES (?,?,?,?,?,?,?)";
+        String signupType = "General";
         String userLevel = "Manager";
 
         // 이메일 주소의 @는 MySQL에서 SYNTAX 오류를 발생시킴
@@ -42,11 +43,12 @@ public class UserDao {
         String email2 = email.substring(cut);
 
         Object[] createUserRequestParams = new Object[]{
+                buildingIdx,
                 postUserManagerReq.getName(),
                 postUserManagerReq.getPhoneNum(),
                 email1 + email2,
                 postUserManagerReq.getPassword(),
-                postUserManagerReq.getSignupType(),
+                signupType,
                 userLevel};
 
         this.jdbcTemplate.update(createUserRequestQuery, createUserRequestParams);
@@ -99,6 +101,7 @@ public class UserDao {
                 checkInviteCodeParams);
 
     }
+        String isExistInviteCodeParams = inviteCode;
 //
 //    public int modifyUserName(PatchUserReq patchUserReq){
 //        String modifyUserNameQuery = "update User set nickName = ? where userIdx = ? ";

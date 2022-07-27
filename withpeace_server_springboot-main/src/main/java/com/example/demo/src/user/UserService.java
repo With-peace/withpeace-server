@@ -52,7 +52,7 @@ public class UserService {
         this.dataSource = dataSource;
     }
 
-    /** 관리자 회원가입 **/
+    /** 관리자 일반 회원가입 **/
     @Transactional
     public PostUserManagerRes createManagerReq(PostUserManagerReq postUserManagerReq) throws BaseException {
 
@@ -83,15 +83,15 @@ public class UserService {
         System.out.println(inviteCode); //
 
         try{
-            // Post - UserRequest
-            // name, phoneNum, email, password, signupType
-            int userRequestIdx = userDao.postUserManager(postUserManagerReq);
-            System.out.println("userRequest");
-
             // Post - Building
             // name, address, inviteCode
             int buildingIdx = userDao.postBuilding(postUserManagerReq, inviteCode);
-            System.out.println("building");
+            System.out.println("building : "+buildingIdx);
+
+            // Post - UserRequest
+            // name, phoneNum, email, password, signupType
+            int userRequestIdx = userDao.postUserManager(postUserManagerReq, buildingIdx);
+            System.out.println("userRequest : "+userRequestIdx);
 
             // 추가된 유저요청인덱스, 건물 인덱스 반환
             return new PostUserManagerRes(userRequestIdx, buildingIdx);
