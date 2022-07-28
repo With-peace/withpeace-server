@@ -1,9 +1,14 @@
 package com.example.demo.src.auth;
 
+import com.example.demo.src.auth.*;
+import com.example.demo.config.BaseException;
 import com.example.demo.utils.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,17 +27,38 @@ import java.util.*;
 import java.lang.*;
 
 import com.example.demo.src.auth.model.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import static com.example.demo.config.BaseResponseStatus.FAILED_TO_LOGIN;
+import static com.example.demo.config.BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR;
 
 
 @Getter
 @Setter
-@AllArgsConstructor
+//@AllArgsConstructor
 @Component
+@Service
 public class AuthService {
+    final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private final AuthDao authDao;
+    private final AuthProvider authProvider;
+    private final JwtService jwtService;
     private final ApplicationNaverSENS applicationNaverSENS;
 
+
+
+    @Autowired
+    public AuthService(AuthDao authDao, AuthProvider authProvider, JwtService jwtService, ApplicationNaverSENS applicationNaverSENS) {
+        this.authDao = authDao;
+        this.authProvider = authProvider;
+        this.jwtService = jwtService;
+        this.applicationNaverSENS = applicationNaverSENS;
+
+    }
+
+    /** 인증번호 발송 **/
     public SendSmsResponseDto sendSms(String phoneNum, String content) throws ParseException, JsonProcessingException, UnsupportedEncodingException, InvalidKeyException, NoSuchAlgorithmException, URISyntaxException {
         String timestamp = Long.toString(System.currentTimeMillis());
         List<MessagesRequestDto> messages = new ArrayList<>();
@@ -102,6 +128,31 @@ public class AuthService {
         }
 
         return encodeBase64String;
+    }
+
+
+    /** 일반 로그인 **/
+    public PostLoginRes LogIn(PostLoginReq postLoginReq) throws BaseException {
+        UserInfo userInfo = authDao.getUserInfo(postLoginReq);
+        String encryptPwd;
+
+        try{
+            // 암호화 -> SHA256
+            encryptPwd = new SHA256().encrypt(postLoginReq.getPassword()); // 암호화
+        }
+        catch (Exception exception){
+            throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
+        }
+
+        // 암호화 준 비밀번호를 확인
+        if(userInfo.getPassword().equals(encryptPwd)){
+            // 비교를 해주고, 이상이 없다면 jwt 발급
+            int userIdx = userInfo.getUserIdx();
+            String jwt = jwtService.createJwt(userIdx);
+            return new PostLoginRes(userIdx, jwt);
+        }
+        else
+            throw new BaseException(FAILED_TO_LOGIN);
     }
 
 }

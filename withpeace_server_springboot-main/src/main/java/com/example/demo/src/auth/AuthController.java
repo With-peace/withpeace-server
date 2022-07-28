@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.bind.support.SessionStatus;
 
 import static com.example.demo.config.BaseResponseStatus.*;
+import static com.example.demo.utils.ValidationRegex.isRegexEmail;
 
 @RestController
 @RequestMapping("/auth")
@@ -93,6 +94,36 @@ public class AuthController {
         }
         else{
             return new BaseResponse<>("F");
+        }
+    }
+
+    /**
+     * 일반 로그인 API
+     * [POST] /auth/login
+     * @return BaseResponse<PostLoginRes>
+     */
+    @ResponseBody
+    @PostMapping("/login")
+    public BaseResponse<PostLoginRes> logIn(@RequestBody PostLoginReq postLoginReq) {
+        try{
+            // 이메일 입력하지 않았을 때
+            if(postLoginReq.getEmail() == null) {
+                return new BaseResponse<>(BaseResponseStatus.POST_USERS_EMPTY_EMAIL);
+            }
+            // 비밀번호를 입력하지 않았을 때
+            if(postLoginReq.getPassword() == null) {
+                return new BaseResponse<>(BaseResponseStatus.POST_USERS_EMPTY_PASSWORD);
+            }
+
+            if(!isRegexEmail(postLoginReq.getEmail())){ // 이메일 형식 확인
+                return new BaseResponse<>(BaseResponseStatus.POST_USERS_INVALID_EMAIL);
+            }
+
+            PostLoginRes postLoginRes = authService.LogIn(postLoginReq);
+            return new BaseResponse<>(postLoginRes);
+
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
         }
     }
 

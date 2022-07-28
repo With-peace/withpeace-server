@@ -14,16 +14,15 @@ import static com.example.demo.config.BaseResponseStatus.*;
 @Service
 public class AuthProvider {
     private final AuthDao authDao;
-    private final AuthService authService;
     private final JwtService jwtService;
 
 
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    public AuthProvider(AuthDao authDao, AuthService authService, JwtService jwtService) {
+    public AuthProvider(AuthDao authDao, JwtService jwtService) {
         this.authDao = authDao;
-        this.authService = authService;
         this.jwtService = jwtService;
     }
+
 }
