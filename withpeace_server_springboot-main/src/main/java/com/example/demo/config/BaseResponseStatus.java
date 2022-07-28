@@ -47,7 +47,7 @@ public enum BaseResponseStatus {
     POST_USERS_RESIDENT_EMPTY_HO(false, 2027, "호수를 입력해주세요."),
 
     // [POST] /auth/phoneAuthOk
-    POST_AUTH_SESSION_TIMEOUT(false, 2025, "인증번호가 만료되었습니다."),
+    POST_AUTH_SESSION_TIMEOUT(false, 2040, "인증번호가 만료되었습니다."),
 
 
 
@@ -60,6 +60,7 @@ public enum BaseResponseStatus {
     // [POST] /users
     DUPLICATED_EMAIL(false, 3013, "중복된 이메일입니다."),
     FAILED_TO_LOGIN(false,3014,"없는 아이디거나 비밀번호가 틀렸습니다."),
+    INVALID_INVITECODE(false,3015,"존재하지 않는 초대코드 입니다."),
 
 
 

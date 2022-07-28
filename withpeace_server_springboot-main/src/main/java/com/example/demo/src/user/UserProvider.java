@@ -2,6 +2,7 @@ package com.example.demo.src.user;
 
 
 import com.example.demo.config.BaseException;
+import com.example.demo.config.BaseResponse;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import org.slf4j.Logger;
@@ -48,6 +49,15 @@ public class UserProvider {
     public int checkInviteCode(String invideCode) throws BaseException{
         try{
             return userDao.checkInviteCode(invideCode);
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    // 초대코드 확인 - buildingIdx
+    public int getBuildingIdx(String inviteCode) throws BaseException{
+        try{
+            return userDao.getBuildingIdx(inviteCode);
         } catch (Exception exception){
             throw new BaseException(DATABASE_ERROR);
         }

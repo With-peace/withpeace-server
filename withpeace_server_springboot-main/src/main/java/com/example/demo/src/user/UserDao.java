@@ -20,7 +20,7 @@ public class UserDao {
         this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
-    /** 관리자 회원가입 - UserRequest **/
+    /** 관리자 일반 회원가입 - UserRequest **/
     public int postUserManager(PostUserManagerReq postUserManagerReq, int buildingIdx){
         // Post - UserRequest
         // name, phoneNum, email, password, signupType, userLevel
@@ -56,7 +56,7 @@ public class UserDao {
         String lastInsertIdQuery = "select last_insert_id()";
         return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
     }
-    /** 관리자 회원가입 - Building **/
+    /** 관리자 일반 회원가입 - Building **/
     public int postBuilding(PostUserManagerReq postUserManagerReq, String inviteCode){
         // Post - Building
         // name, address, inviteCode
@@ -73,9 +73,63 @@ public class UserDao {
     }
 
 
+    /** 주민 일반 회원가입 - Building **/
+    // 해당하는 초대코드의 buildingIdx를 가져오는 sql
+    public int getBuildingIdx(String inviteCode){
+        // Get - Building
+        // buildingIdx
+        String getBuildingIdxQuery = "" +
+                "select buildingIdx\n" +
+                "from Building\n" +
+                "where inviteCode=?";
+        String getBuildingIdxParams = inviteCode;
+
+        return this.jdbcTemplate.queryForObject(getBuildingIdxQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> rs.getInt("buildingIdx"), getBuildingIdxParams);
+    }
+    /** 주민 일반 회원가입 - UserRequest **/
+    public int postUserResident(int buildingIdx, PostUserResidentReq postUserResidentReq){
+        // Post - UserRequest
+        // buildingIdx, name, phoneNum, email, password, dong, ho, signupType
+        String createUserRequestQuery = "insert into UserRequest (buildingIdx, name, phoneNum, email, password, dong, ho, signupType, userLevel) VALUES (?,?,?,?,?,?,?,?,?)";
+        String signupType = "General";
+        String userLevel = "Resident";
+
+        // 이메일 주소의 @는 MySQL에서 SYNTAX 오류를 발생시킴
+        // @뒤로 작은 따옴표를 붙여 스트링으로 들어가도록 해야함
+        // ex) “sj1234’+’@naver.com’
+        String email = postUserResidentReq.getEmail();
+        int cut = 0;
+        for(int i=0; i<email.length(); i++){
+            if(email.charAt(i) == '@'){
+                cut = i;
+                break;
+            }
+        }
+        String email1 = email.substring(0, cut);
+        String email2 = email.substring(cut);
+
+        Object[] createUserRequestParams = new Object[]{
+                buildingIdx,
+                postUserResidentReq.getName(),
+                postUserResidentReq.getPhoneNum(),
+                email1 + email2,
+                postUserResidentReq.getPassword(),
+                postUserResidentReq.getDong(),
+                postUserResidentReq.getHo(),
+                signupType,
+                userLevel};
+
+        this.jdbcTemplate.update(createUserRequestQuery, createUserRequestParams);
+
+        String lastInsertIdQuery = "select last_insert_id()";
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
+    }
+
+
     /** 관리자,주민 회원가입 - User 이메일 중복확인 **/
     public int checkUserEmail(String email){
-        String checkEmailQuery = "select exists(select email from User where email = ?)";
+        String checkEmailQuery = "select exists(select email from User where email = ? and status='ACTIVE')";
         String checkEmailParams = email;
         return this.jdbcTemplate.queryForObject(checkEmailQuery,
                 int.class,
@@ -84,7 +138,7 @@ public class UserDao {
     }
     /** 관리자,주민 회원가입 - UserRequest 이메일 중복확인 **/
     public int checkUserRequestEmail(String email){
-        String checkEmailQuery = "select exists(select email from UserRequest where email = ?)";
+        String checkEmailQuery = "select exists(select email from UserRequest where email = ? and status='Request' or 'Approve')";
         String checkEmailParams = email;
         return this.jdbcTemplate.queryForObject(checkEmailQuery,
                 int.class,
@@ -101,7 +155,15 @@ public class UserDao {
                 checkInviteCodeParams);
 
     }
+
+    /** 주민 회원가입 - 초대코드 존재확인 **/
+    public int isExistInviteCode(String inviteCode){
+        String isExistInviteCodeQuery = "select exists(select inviteCode from Building where inviteCode = ? and status = 'Approve')";
         String isExistInviteCodeParams = inviteCode;
+        return this.jdbcTemplate.queryForObject(isExistInviteCodeQuery, int.class,
+                isExistInviteCodeParams);
+    }
+
 //
 //    public int modifyUserName(PatchUserReq patchUserReq){
 //        String modifyUserNameQuery = "update User set nickName = ? where userIdx = ? ";

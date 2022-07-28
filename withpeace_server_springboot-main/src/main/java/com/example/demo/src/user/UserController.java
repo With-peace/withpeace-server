@@ -101,6 +101,72 @@ public class UserController {
         }
     }
 
+    /**
+     * 주민 일반 회원가입 API
+     * [POST] /users/signup/resident
+     *
+     * @return BaseResponse<PostUserResidentRes>
+     */
+    @ResponseBody
+    @PostMapping("/signup/resident")
+    public BaseResponse<PostUserResidentRes> createResidentReq(@RequestBody PostUserResidentReq postUserResidentReq) {
+
+        // 이름 입력하지 않았을 때
+        if (postUserResidentReq.getName() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
+        }
+        // 휴대폰 번호 입력하지 않았을 때
+        if (postUserResidentReq.getPhoneNum() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_PHONENUM);
+        }
+        // 휴대폰 번호 정규표현
+        if (!isRegexPhoneNum(postUserResidentReq.getPhoneNum())) {
+            return new BaseResponse<>(POST_USERS_INVALID_PHONENUM);
+        }
+        // 휴대폰 번호 인증하지 않았을 때
+        if (postUserResidentReq.getPhoneNumCheck().equals("T") == false || postUserResidentReq.getPhoneNumCheck() == null) {
+            System.out.println("휴대폰 인증 필요");
+            return new BaseResponse<>(POST_USERS_CHECK_PHONENUM);
+        }
+        // 이메일 입력하지 않았을 때
+        if (postUserResidentReq.getEmail() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_EMAIL);
+        }
+        // 이메일 정규표현
+        if (!isRegexEmail(postUserResidentReq.getEmail())) {
+            return new BaseResponse<>(POST_USERS_INVALID_EMAIL);
+        }
+        // 비밀번호 입력하지 않았을 때
+        if (postUserResidentReq.getPassword() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_PASSWORD);
+        }
+        // 비밀번호 정규표현
+        if (!isRegexPwd(postUserResidentReq.getPassword())) {
+            // 8~16자, 최소 하나의 문자, 하나의 숫자 및 하나의 특수 문자 포함
+            return new BaseResponse<>(POST_USERS_INVALID_PASSWORD);
+        }
+        // 초대코드 입력하지 않았을 때
+        if (postUserResidentReq.getInviteCode() == null) {
+            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_ADDRESS);
+        }
+        // 호수 입력하지 않았을 때
+        if (postUserResidentReq.getHo() == null) {
+            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_BUILDINGNAME);
+        }
+        // 정보 이용 동의하지 않았을 때
+        if (postUserResidentReq.getAgreeInfo().equals("T") == false || postUserResidentReq.getPhoneNumCheck() == null) {
+            System.out.println("개인정보 수집 및 이용에 동의 필요");
+            return new BaseResponse<>(POST_USERS_EMPTY_AGREEINFO);
+        }
+
+        try {
+            PostUserResidentRes postUserResidentRes = userService.createResidentReq(postUserResidentReq);
+            return new BaseResponse<>(postUserResidentRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 
 
     /**

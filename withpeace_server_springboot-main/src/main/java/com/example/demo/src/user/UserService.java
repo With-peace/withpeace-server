@@ -3,6 +3,7 @@ package com.example.demo.src.user;
 
 import com.example.demo.config.BaseException;
 
+import com.example.demo.config.BaseResponse;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import com.example.demo.utils.SHA256;
@@ -95,6 +96,47 @@ public class UserService {
 
             // 추가된 유저요청인덱스, 건물 인덱스 반환
             return new PostUserManagerRes(userRequestIdx, buildingIdx);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 주민 일반 회원가입 **/
+    @Transactional
+    public PostUserResidentRes createResidentReq(PostUserResidentReq postUserResidentReq) throws BaseException {
+
+        // 이메일 중복 확인 - User, UserRequest
+        if(userProvider.checkUserEmail(postUserResidentReq.getEmail()) == 1
+                || userProvider.checkUserRequestEmail(postUserResidentReq.getEmail()) == 1){
+            throw new BaseException(POST_USERS_EXISTS_EMAIL);
+        }
+
+        String pwd;
+        try{
+            // 비밀번호 암호화
+            pwd = new SHA256().encrypt(postUserResidentReq.getPassword());
+            postUserResidentReq.setPassword(pwd);
+        } catch (Exception ignored) {
+            throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
+        }
+
+        // 초대코드 존재확인
+        if(userDao.isExistInviteCode(postUserResidentReq.getInviteCode()) == 0){
+            throw new BaseException(INVALID_INVITECODE);
+        }
+
+        try{
+            // Get - Building
+            // buildingIdx
+            int buildingIdx = userProvider.getBuildingIdx(postUserResidentReq.getInviteCode());
+
+            // Post - UserRequest
+            // name, phoneNum, email, password, signupType
+            int userRequestIdx = userDao.postUserResident(buildingIdx, postUserResidentReq);
+            System.out.println("userRequest : "+userRequestIdx);
+
+            // 추가된 유저요청인덱스, 건물 인덱스 반환
+            return new PostUserResidentRes(userRequestIdx);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
