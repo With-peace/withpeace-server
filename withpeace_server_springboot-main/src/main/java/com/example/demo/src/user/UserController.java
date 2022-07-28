@@ -53,10 +53,14 @@ public class UserController {
         if (postUserManagerReq.getPhoneNum() == null) {
             return new BaseResponse<>(POST_USERS_EMPTY_PHONENUM);
         }
+        // 휴대폰 번호 정규표현
+        if (!isRegexPhoneNum(postUserManagerReq.getPhoneNum())) {
+            return new BaseResponse<>(POST_USERS_INVALID_PHONENUM);
+        }
         // 휴대폰 번호 인증하지 않았을 때
         if (postUserManagerReq.getPhoneNumCheck().equals("T") == false || postUserManagerReq.getPhoneNumCheck() == null) {
             System.out.println("휴대폰 인증 필요");
-            return new BaseResponse<>(POST_USERS_INVALID_PHONENUM);
+            return new BaseResponse<>(POST_USERS_CHECK_PHONENUM);
         }
         // 이메일 입력하지 않았을 때
         if (postUserManagerReq.getEmail() == null) {
