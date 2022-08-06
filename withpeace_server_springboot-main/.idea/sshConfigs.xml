@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig host="43.200.79.63" id="57222e6a-5b54-4dd2-8727-047ccdc28c30" keyPath="C:\Users\dltmdwls\Projects\withpeace\withpeace-keypair.ppk" port="22" nameFormat="DESCRIPTIVE" username="ubuntu" useOpenSSHConfig="true" />
+    </configs>
+  </component>
+</project>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="9dc56da3-141e-413a-9448-7d9cfa6c0588" name="withpeace_server" url="http://dev.withpeace.site">
+        <fileTransfer rootFolder="/var/www/html/dev/withpeace_server_springboot-main" accessType="SFTP" host="43.200.79.63" port="22" sshConfigId="57222e6a-5b54-4dd2-8727-047ccdc28c30" sshConfig="ubuntu@43.200.79.63:22 key" keyPair="true">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
