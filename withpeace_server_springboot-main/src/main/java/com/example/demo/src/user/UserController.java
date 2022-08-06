@@ -2,6 +2,7 @@ package com.example.demo.src.user;
 
 import com.example.demo.config.BaseException;
 import com.example.demo.config.BaseResponse;
+import com.example.demo.config.BaseResponseStatus;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import org.slf4j.Logger;
@@ -154,7 +155,7 @@ public class UserController {
             return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_BUILDINGNAME);
         }
         // 정보 이용 동의하지 않았을 때
-        if (postUserResidentReq.getAgreeInfo().equals("T") == false || postUserResidentReq.getPhoneNumCheck() == null) {
+        if (postUserResidentReq.getAgreeInfo().equals("T") == false || postUserResidentReq.getAgreeInfo() == null) {
             System.out.println("개인정보 수집 및 이용에 동의 필요");
             return new BaseResponse<>(POST_USERS_EMPTY_AGREEINFO);
         }
@@ -192,8 +193,7 @@ public class UserController {
             GetEmailCheck getEmailCheck = new GetEmailCheck("F");
 
             // 이메일 중복 확인 - User, UserRequest
-            if(userProvider.checkUserEmail(email.get("email")) == 1
-                    || userProvider.checkUserRequestEmail(email.get("email")) == 1){
+            if(userProvider.checkUserEmail(email.get("email")) == 1){
                 getEmailCheck.setCheckEmail("T");
             }
             return new BaseResponse<>(getEmailCheck);
@@ -202,5 +202,32 @@ public class UserController {
         }
     }
 
+
+    /**
+     * 로그아웃 테스트 API
+     * [GET] /users/{userIdx}
+     *
+     * @return BaseResponse<GetEmailCheck>
+     */
+    @ResponseBody
+    @GetMapping("/{userIdx}")
+    public BaseResponse<String> LogOutTest(@PathVariable("userIdx") int userIdx) throws BaseException {
+        // jwt 토큰 만료시간 검사
+        jwtService.checkJwtExp();
+
+        // jwt 토큰 검사
+        int userIdxByJwt = jwtService.getUserIdx();
+        if (userIdx != userIdxByJwt) {
+            return new BaseResponse<>(BaseResponseStatus.INVALID_USER_JWT);
+        }
+
+        String result = "";
+        if (userIdxByJwt > 0) {
+            result = "로그아웃 실패";
+        }else{
+            result = "로그아웃 성공";
+        }
+        return new BaseResponse<>(result);
+    }
 
 }

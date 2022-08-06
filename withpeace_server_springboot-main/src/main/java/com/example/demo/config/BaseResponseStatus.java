@@ -49,6 +49,9 @@ public enum BaseResponseStatus {
     // [POST] /auth/phoneAuthOk
     POST_AUTH_SESSION_TIMEOUT(false, 2040, "인증번호가 만료되었습니다."),
 
+    //[POST] /auth/logout/{userIdx}
+    LOGOUT_ERROR(false, 2050, "로그아웃에 실패하였습니다."),
+
 
 
     /**

@@ -25,4 +25,13 @@ public class AuthProvider {
         this.jwtService = jwtService;
     }
 
+    /** userIdx 중복확인 - User **/
+    public int checkUserIdx(long userIdx) throws BaseException{
+        try{
+            return authDao.checkUserIdx(userIdx);
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

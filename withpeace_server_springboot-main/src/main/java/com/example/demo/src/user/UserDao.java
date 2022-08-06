@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
+import java.math.BigInteger;
+import java.lang.Long;
 
 import javax.sql.DataSource;
 import java.util.List;
@@ -21,10 +23,10 @@ public class UserDao {
     }
 
     /** 관리자 일반 회원가입 - UserRequest **/
-    public int postUserManager(PostUserManagerReq postUserManagerReq, int buildingIdx){
+    public Long postUserManager(PostUserManagerReq postUserManagerReq, int buildingIdx){
         // Post - UserRequest
         // name, phoneNum, email, password, signupType, userLevel
-        String createUserRequestQuery = "insert into UserRequest (buildingIdx, name, phoneNum, email, password, signupType, userLevel) VALUES (?,?,?,?,?,?,?)";
+        String createUserRequestQuery = "insert into User (buildingIdx, name, phoneNum, email, password, signupType, userLevel) VALUES (?,?,?,?,?,?,?)";
         String signupType = "General";
         String userLevel = "Manager";
 
@@ -54,7 +56,7 @@ public class UserDao {
         this.jdbcTemplate.update(createUserRequestQuery, createUserRequestParams);
 
         String lastInsertIdQuery = "select last_insert_id()";
-        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,Long.class);
     }
     /** 관리자 일반 회원가입 - Building **/
     public int postBuilding(PostUserManagerReq postUserManagerReq, String inviteCode){
@@ -87,11 +89,12 @@ public class UserDao {
         return this.jdbcTemplate.queryForObject(getBuildingIdxQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> rs.getInt("buildingIdx"), getBuildingIdxParams);
     }
-    /** 주민 일반 회원가입 - UserRequest **/
-    public int postUserResident(int buildingIdx, PostUserResidentReq postUserResidentReq){
+
+    /** 주민 일반 회원가입 - User **/
+    public Long postUserResident(int buildingIdx, PostUserResidentReq postUserResidentReq){
         // Post - UserRequest
         // buildingIdx, name, phoneNum, email, password, dong, ho, signupType
-        String createUserRequestQuery = "insert into UserRequest (buildingIdx, name, phoneNum, email, password, dong, ho, signupType, userLevel) VALUES (?,?,?,?,?,?,?,?,?)";
+        String createUserRequestQuery = "insert into User (buildingIdx, name, phoneNum, email, password, dong, ho, signupType, userLevel) VALUES (?,?,?,?,?,?,?,?,?)";
         String signupType = "General";
         String userLevel = "Resident";
 
@@ -123,28 +126,29 @@ public class UserDao {
         this.jdbcTemplate.update(createUserRequestQuery, createUserRequestParams);
 
         String lastInsertIdQuery = "select last_insert_id()";
-        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,Long.class);
     }
 
 
     /** 관리자,주민 회원가입 - User 이메일 중복확인 **/
     public int checkUserEmail(String email){
-        String checkEmailQuery = "select exists(select email from User where email = ? and status='ACTIVE')";
+        String checkEmailQuery = "select exists(select email from User where email = ? and status='ACTIVE' and reqStatus='Request' or 'Approve')";
         String checkEmailParams = email;
         return this.jdbcTemplate.queryForObject(checkEmailQuery,
                 int.class,
                 checkEmailParams);
 
     }
-    /** 관리자,주민 회원가입 - UserRequest 이메일 중복확인 **/
-    public int checkUserRequestEmail(String email){
-        String checkEmailQuery = "select exists(select email from UserRequest where email = ? and status='Request' or 'Approve')";
-        String checkEmailParams = email;
-        return this.jdbcTemplate.queryForObject(checkEmailQuery,
-                int.class,
-                checkEmailParams);
 
-    }
+//    /** 관리자,주민 회원가입 - UserRequest 이메일 중복확인 **/
+//    public int checkUserRequestEmail(String email){
+//        String checkEmailQuery = "select exists(select email from UserRequest where email = ? and status='Request' or 'Approve')";
+//        String checkEmailParams = email;
+//        return this.jdbcTemplate.queryForObject(checkEmailQuery,
+//                int.class,
+//                checkEmailParams);
+//
+//    }
 
     /** 관리자 회원가입 - 초대코드 중복확인 **/
     public int checkInviteCode(String inviteCode){

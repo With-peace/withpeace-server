@@ -5,16 +5,13 @@ import com.example.demo.config.BaseResponseStatus;
 import com.example.demo.config.BaseResponse;
 import com.example.demo.src.auth.model.*;
 import com.example.demo.src.auth.model.SendSmsResponseDto;
-import com.example.demo.src.user.model.PostUserManagerRes;
+import com.example.demo.src.user.model.PostUserResidentReq;
+import com.example.demo.src.user.model.PostUserResidentRes;
 import com.example.demo.utils.*;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
@@ -26,11 +23,9 @@ import java.util.Map;
 import java.util.Random;
 
 import javax.servlet.http.*;
-import org.springframework.web.bind.annotation.SessionAttributes;
-import org.springframework.web.bind.support.SessionStatus;
 
 import static com.example.demo.config.BaseResponseStatus.*;
-import static com.example.demo.utils.ValidationRegex.isRegexEmail;
+import static com.example.demo.utils.ValidationRegex.*;
 
 @RestController
 @RequestMapping("/auth")
@@ -97,6 +92,159 @@ public class AuthController {
         }
     }
 
+//    /**
+//     * 카카오 callback
+//     * [GET] /auth/kakao/callback
+//     * 백엔드 테스트
+//     */
+//    @ResponseBody
+//    @GetMapping("/kakao")
+//    public BaseResponse<KakaoUserInfo> kakaoCallback(@RequestParam String code) {
+//
+//        // 클라이언트에게 받은 인가코드로 ACCESS_TOKEN 가져오기
+//        String access_token = authService.getKakaoAccessToken(code);
+//
+//        // ACCESS_TOKEN을 통해 사용자 정보 가져오기
+//        KakaoUserInfo kakaoUserInfo = authService.getKakaoUserInfo(access_token);
+//
+//        return new BaseResponse<>(kakaoUserInfo);
+//    }
+
+    /**
+     * 카카오 사용자 정보 가져오기
+     * [GET] /auth/kakao
+     */
+    @ResponseBody
+    @GetMapping("/kakao")
+    public BaseResponse<KakaoCallbackRes> kakaoCallback(@RequestParam String accessToken) {
+        try{
+            // ACCESS_TOKEN을 통해 사용자 정보 가져오기
+            KakaoUserInfo kakaoUserInfo = authService.getKakaoUserInfo(accessToken);
+
+            // 다움단계 - Login or Signup
+            String nextLevel;
+
+            // id 중복확인
+            if(authProvider.checkUserIdx(kakaoUserInfo.getId()) == 1){
+                // 로그인
+                nextLevel = "Login";
+            } else{
+                nextLevel = "Signup";
+
+            }
+            KakaoCallbackRes kakaoCallbackRes = new KakaoCallbackRes(kakaoUserInfo.getId(), kakaoUserInfo.getNickname(), accessToken, nextLevel);
+            return new BaseResponse<>(kakaoCallbackRes);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
+     * 카카오 로그인 API
+     * [POST] /auth/kakao/login
+     * @return BaseResponse<PostLoginRes>
+     */
+    @ResponseBody
+    @PostMapping("/kakao/login")
+    public BaseResponse<PostLoginRes> kakaoLogin(@RequestBody KakaoCallbackRes kakaoCallbackRes) {
+        PostLoginRes postLoginRes = new PostLoginRes(kakaoCallbackRes.getUserIdx(), kakaoCallbackRes.getAccessToken());
+        return new BaseResponse<>(postLoginRes);
+    }
+
+
+    /**
+     * 관리자 카카오 회원가입
+     * [POST] /auth/kakao/signup/manager
+     */
+    @ResponseBody
+    @GetMapping("/kakao/signup/manager")
+    public BaseResponse<PostKakaoUserManagerRes> kakaoUserManagerReq(@RequestBody PostKakaoUserManagerReq postKakaoUserManagerReq) {
+
+        // 이름 입력하지 않았을 때
+        if (postKakaoUserManagerReq.getName() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
+        }
+        // 휴대폰 번호 입력하지 않았을 때
+        if (postKakaoUserManagerReq.getPhoneNum() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_PHONENUM);
+        }
+        // 휴대폰 번호 정규표현
+        if (!isRegexPhoneNum(postKakaoUserManagerReq.getPhoneNum())) {
+            return new BaseResponse<>(POST_USERS_INVALID_PHONENUM);
+        }
+        // 휴대폰 번호 인증하지 않았을 때
+        if (postKakaoUserManagerReq.getPhoneNumCheck().equals("T") == false || postKakaoUserManagerReq.getPhoneNumCheck() == null) {
+            System.out.println("휴대폰 인증 필요");
+            return new BaseResponse<>(POST_USERS_CHECK_PHONENUM);
+        }
+        // 주소 입력하지 않았을 때
+        if (postKakaoUserManagerReq.getAddress() == null) {
+            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_ADDRESS);
+        }
+        // 건물 이름 입력하지 않았을 때
+        if (postKakaoUserManagerReq.getBuildingName() == null) {
+            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_BUILDINGNAME);
+        }
+        // 정보 이용 동의하지 않았을 때
+        if (postKakaoUserManagerReq.getAgreeInfo().equals("T") == false || postKakaoUserManagerReq.getPhoneNumCheck() == null) {
+            System.out.println("개인정보 수집 및 이용에 동의 필요");
+            return new BaseResponse<>(POST_USERS_EMPTY_AGREEINFO);
+        }
+
+        try{
+            PostKakaoUserManagerRes postKakaoUserManagerRes = authService.createManagerReq(postKakaoUserManagerReq);
+            return new BaseResponse<>(postKakaoUserManagerRes);
+
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
+     * 주민 카카오 회원가입
+     * [POST] /auth/kakao/signup/resident
+     */
+    @ResponseBody
+    @PostMapping("/kakao/signup/resident")
+    public BaseResponse<PostKakaoUserResidentRes> kakaoUserResidentReq(@RequestBody PostKakaoUserResidentReq postKakaoUserResidentReq) {
+
+        // 이름 입력하지 않았을 때
+        if (postKakaoUserResidentReq.getName() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_NAME);
+        }
+        // 휴대폰 번호 입력하지 않았을 때
+        if (postKakaoUserResidentReq.getPhoneNum() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_PHONENUM);
+        }
+        // 휴대폰 번호 정규표현
+        if (!isRegexPhoneNum(postKakaoUserResidentReq.getPhoneNum())) {
+            return new BaseResponse<>(POST_USERS_INVALID_PHONENUM);
+        }
+        // 초대코드 입력하지 않았을 때
+        if (postKakaoUserResidentReq.getInviteCode() == null) {
+            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_ADDRESS);
+        }
+        // 호수 입력하지 않았을 때
+        if (postKakaoUserResidentReq.getHo() == null) {
+            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_BUILDINGNAME);
+        }
+        // 정보 이용 동의하지 않았을 때
+        if (postKakaoUserResidentReq.getAgreeInfo().equals("T") == false || postKakaoUserResidentReq.getAgreeInfo() == null) {
+            System.out.println("개인정보 수집 및 이용에 동의 필요");
+            return new BaseResponse<>(POST_USERS_EMPTY_AGREEINFO);
+        }
+
+        try {
+            PostKakaoUserResidentRes postKakaoUserResidentRes = authService.createResidentReq(postKakaoUserResidentReq);
+            return new BaseResponse<>(postKakaoUserResidentRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
     /**
      * 일반 로그인 API
      * [POST] /auth/login
@@ -121,6 +269,31 @@ public class AuthController {
 
             PostLoginRes postLoginRes = authService.LogIn(postLoginReq);
             return new BaseResponse<>(postLoginRes);
+
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+    /**
+     * 로그아웃 API
+     * [POST] /auth/logout/{userIdx}
+     * @return String
+     */
+    @ResponseBody
+    @PostMapping("/logout/{userIdx}")
+    public BaseResponse<String> logOut(@PathVariable("userIdx") Integer userIdx) throws BaseException {
+
+        // jwt 토큰 검사
+        int userIdxByJwt = jwtService.getUserIdx();
+        if(userIdx != userIdxByJwt){
+            return new BaseResponse<>(BaseResponseStatus.INVALID_USER_JWT);
+        }
+
+        try{
+            authService.LogOut();
+            String result = "로그아웃이 완료되었습니다.";
+            return new BaseResponse<>(result);
 
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));

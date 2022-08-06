@@ -12,6 +12,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
 import java.util.Date;
 
 import static com.example.demo.config.BaseResponseStatus.*;
@@ -24,7 +25,7 @@ public class JwtService {
     @param userIdx
     @return String
      */
-    public String createJwt(int userIdx){
+    public String createJwt(Long userIdx){
         Date now = new Date();
         return Jwts.builder()
                 .setHeaderParam("type","jwt")
@@ -70,4 +71,58 @@ public class JwtService {
         return claims.getBody().get("userIdx",Integer.class);
     }
 
+    /*
+    JWT 만료하기
+    @param jwt
+    @return String
+     */
+    public void deleteJwt() throws BaseException{
+        //1. JWT 추출
+        String accessToken = getJwt();
+        if(accessToken == null || accessToken.length() == 0){
+            throw new BaseException(EMPTY_JWT);
+        }
+
+        // 2. JWT parsing
+        Jws<Claims> claims;
+        try{
+            claims = Jwts.parser()
+                    .setSigningKey(Secret.JWT_SECRET_KEY)
+                    .parseClaimsJws(accessToken);
+        } catch (Exception ignored) {
+            throw new BaseException(INVALID_JWT);
+        }
+
+        // 3. 만료시간 현재 시간으로부터 0.5초 후로 변경
+        System.out.println("현재시간 : "+new Date(System.currentTimeMillis()));
+        System.out.println("토큰만료시간 : "+claims.getBody().getExpiration());
+        System.out.println("토큰 getBody : "+claims.getBody());
+        System.out.println();
+        claims.getBody().setExpiration(new Date(System.currentTimeMillis()+1));
+        System.out.println("토큰만료시간 : "+claims.getBody().getExpiration());
+        System.out.println("토큰 getBody : "+claims.getBody());
+    }
+
+    /*
+    JWT 만료 확인
+    @param jwt
+    @return String
+     */
+    public void checkJwtExp() throws BaseException{
+        //1. JWT 추출
+        String accessToken = getJwt();
+        if(accessToken == null || accessToken.length() == 0){
+            throw new BaseException(EMPTY_JWT);
+        }
+
+        // 2. JWT parsing
+        Jws<Claims> claims;
+        try{
+            claims = Jwts.parser()
+                    .setSigningKey(Secret.JWT_SECRET_KEY)
+                    .parseClaimsJws(accessToken);
+        } catch (Exception exception) {
+            throw  new BaseException(INVALID_JWT);
+        }
+    }
 }

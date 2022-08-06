@@ -20,6 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import java.lang.Long;
+import java.math.BigInteger;
 
 
 import javax.sql.DataSource;
@@ -58,8 +60,7 @@ public class UserService {
     public PostUserManagerRes createManagerReq(PostUserManagerReq postUserManagerReq) throws BaseException {
 
         // 이메일 중복 확인 - User, UserRequest
-        if(userProvider.checkUserEmail(postUserManagerReq.getEmail()) == 1
-            || userProvider.checkUserRequestEmail(postUserManagerReq.getEmail()) == 1){
+        if(userProvider.checkUserEmail(postUserManagerReq.getEmail()) == 1){
             throw new BaseException(POST_USERS_EXISTS_EMAIL);
         }
 
@@ -89,13 +90,15 @@ public class UserService {
             int buildingIdx = userDao.postBuilding(postUserManagerReq, inviteCode);
             System.out.println("building : "+buildingIdx);
 
-            // Post - UserRequest
-            // name, phoneNum, email, password, signupType
-            int userRequestIdx = userDao.postUserManager(postUserManagerReq, buildingIdx);
-            System.out.println("userRequest : "+userRequestIdx);
+            // Post - User
+            // buildingIdx, name, phoneNum, email, password, signupType
+            Long userIdx = userDao.postUserManager(postUserManagerReq, buildingIdx);
+            System.out.println("userRequest : "+userIdx);
 
-            // 추가된 유저요청인덱스, 건물 인덱스 반환
-            return new PostUserManagerRes(userRequestIdx, buildingIdx);
+            String jwt = jwtService.createJwt(userIdx);
+
+            // 추가된 유저인덱스, 건물 인덱스 반환
+            return new PostUserManagerRes(userIdx, buildingIdx, jwt);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -106,8 +109,7 @@ public class UserService {
     public PostUserResidentRes createResidentReq(PostUserResidentReq postUserResidentReq) throws BaseException {
 
         // 이메일 중복 확인 - User, UserRequest
-        if(userProvider.checkUserEmail(postUserResidentReq.getEmail()) == 1
-                || userProvider.checkUserRequestEmail(postUserResidentReq.getEmail()) == 1){
+        if(userProvider.checkUserEmail(postUserResidentReq.getEmail()) == 1){
             throw new BaseException(POST_USERS_EXISTS_EMAIL);
         }
 
@@ -129,14 +131,17 @@ public class UserService {
             // Get - Building
             // buildingIdx
             int buildingIdx = userProvider.getBuildingIdx(postUserResidentReq.getInviteCode());
+            System.out.println("buildingIdx : "+buildingIdx);
 
-            // Post - UserRequest
-            // name, phoneNum, email, password, signupType
-            int userRequestIdx = userDao.postUserResident(buildingIdx, postUserResidentReq);
-            System.out.println("userRequest : "+userRequestIdx);
+            // Post - User
+            // buildingIdx, name, phoneNum, email, password, signupType
+            Long userIdx = userDao.postUserResident(buildingIdx, postUserResidentReq);
+            System.out.println("userIdx : "+userIdx);
+
+            String jwt = jwtService.createJwt(userIdx);
 
             // 추가된 유저요청인덱스, 건물 인덱스 반환
-            return new PostUserResidentRes(userRequestIdx);
+            return new PostUserResidentRes(userIdx, jwt);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

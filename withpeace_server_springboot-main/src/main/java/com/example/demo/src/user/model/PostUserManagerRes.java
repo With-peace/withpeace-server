@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class PostUserManagerRes {
-    private int userRequestIdx;
+    private Long userIdx;
     private int buildingIdx;
+    private String jwt;
 }

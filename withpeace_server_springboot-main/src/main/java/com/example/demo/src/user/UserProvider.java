@@ -36,14 +36,15 @@ public class UserProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
-    // 이메일 중복확인 - UserRequest
-    public int checkUserRequestEmail(String email) throws BaseException{
-        try{
-            return userDao.checkUserRequestEmail(email);
-        } catch (Exception exception){
-            throw new BaseException(DATABASE_ERROR);
-        }
-    }
+
+//    // 이메일 중복확인 - UserRequest
+//    public int checkUserRequestEmail(String email) throws BaseException{
+//        try{
+//            return userDao.checkUserRequestEmail(email);
+//        } catch (Exception exception){
+//            throw new BaseException(DATABASE_ERROR);
+//        }
+//    }
     
     // 초대코드 중복확인
     public int checkInviteCode(String invideCode) throws BaseException{

@@ -1,11 +1,13 @@
 package com.example.demo.src.auth;
 
-import com.example.demo.src.auth.*;
 import com.example.demo.config.BaseException;
+import com.example.demo.src.auth.model.*;
+import com.example.demo.src.user.*;
 import com.example.demo.utils.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,10 @@ import org.springframework.stereotype.Component;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -28,10 +32,18 @@ import java.lang.*;
 
 import com.example.demo.src.auth.model.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
-import static com.example.demo.config.BaseResponseStatus.FAILED_TO_LOGIN;
-import static com.example.demo.config.BaseResponseStatus.PASSWORD_ENCRYPTION_ERROR;
+import static com.example.demo.config.BaseResponseStatus.*;
+
+// kakao
+import com.google.gson.JsonParser;
+import com.google.gson.JsonElement;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 
 @Getter
@@ -42,15 +54,18 @@ import static com.example.demo.config.BaseResponseStatus.PASSWORD_ENCRYPTION_ERR
 public class AuthService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private final UserProvider userProvider;
+    private final UserDao userDao;
     private final AuthDao authDao;
     private final AuthProvider authProvider;
     private final JwtService jwtService;
     private final ApplicationNaverSENS applicationNaverSENS;
 
 
-
     @Autowired
-    public AuthService(AuthDao authDao, AuthProvider authProvider, JwtService jwtService, ApplicationNaverSENS applicationNaverSENS) {
+    public AuthService(UserProvider userProvider, UserDao userDao, AuthDao authDao, AuthProvider authProvider, JwtService jwtService, ApplicationNaverSENS applicationNaverSENS) {
+        this.userDao = userDao;
+        this.userProvider = userProvider;
         this.authDao = authDao;
         this.authProvider = authProvider;
         this.jwtService = jwtService;
@@ -130,6 +145,184 @@ public class AuthService {
         return encodeBase64String;
     }
 
+    /** 토큰 받기 - kakao **/
+    public String getKakaoAccessToken (String code) {
+        String access_Token = "";
+        String refresh_Token = "";
+        String reqURL = "https://kauth.kakao.com/oauth/token";
+
+        try {
+            URL url = new URL(reqURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            //POST 요청을 위해 기본값이 false인 setDoOutput을 true로
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+
+            //POST 요청에 필요로 요구하는 파라미터 스트림을 통해 전송
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
+            StringBuilder sb = new StringBuilder();
+            sb.append("grant_type=authorization_code");
+            sb.append("&client_id=8607b8d717c64553b661fd399330ab4e"); // TODO REST_API_KEY 입력
+            sb.append("&redirect_uri=http://localhost:9000/auth/kakao"); // TODO 인가코드 받은 redirect_uri 입력
+            sb.append("&code=" + code);
+            bw.write(sb.toString());
+            bw.flush();
+
+            //결과 코드가 200이라면 성공
+            int responseCode = conn.getResponseCode();
+            System.out.println("responseCode : " + responseCode);
+
+            //요청을 통해 얻은 JSON타입의 Response 메세지 읽어오기
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String line = "";
+            String result = "";
+
+            while ((line = br.readLine()) != null) {
+                result += line;
+            }
+            System.out.println("response body : " + result);
+
+            //Gson 라이브러리에 포함된 클래스로 JSON파싱 객체 생성
+            JsonParser parser = new JsonParser();
+            JsonElement element = parser.parse(result);
+
+            access_Token = element.getAsJsonObject().get("access_token").getAsString();
+            refresh_Token = element.getAsJsonObject().get("refresh_token").getAsString();
+
+            System.out.println("access_token : " + access_Token);
+            System.out.println("refresh_token : " + refresh_Token);
+
+            br.close();
+            bw.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return access_Token;
+    }
+
+
+    /** 사용자 정보 가져오기 - kakao **/
+    public KakaoUserInfo getKakaoUserInfo(String token) {
+
+        String reqURL = "https://kapi.kakao.com/v2/user/me";
+
+        //access_token을 이용하여 사용자 정보 조회
+        try {
+            URL url = new URL(reqURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("Authorization", "Bearer " + token); //전송할 header 작성, access_token전송
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("charset", "utf-8");
+
+            //결과 코드가 200이라면 성공
+            int responseCode = conn.getResponseCode();
+            System.out.println("responseCode : " + responseCode);
+
+            //요청을 통해 얻은 JSON타입의 Response 메세지 읽어오기
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String line = "";
+            String result = "";
+
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                result += line;
+            }
+            System.out.println("response body : " + result);
+
+            //Gson 라이브러리로 JSON파싱
+            JsonParser parser = new JsonParser();
+            JsonElement element = parser.parse(result);
+
+            long id = element.getAsJsonObject().get("id").getAsLong();
+            boolean hasEmail = element.getAsJsonObject().get("kakao_account").getAsJsonObject().get("has_email").getAsBoolean();
+            String email = "";
+            if(hasEmail){
+                email = element.getAsJsonObject().get("kakao_account").getAsJsonObject().get("email").getAsString();
+            }
+//            byte[] bytes = element.getAsJsonObject().get("properties").getAsJsonObject().get("nickname").getAsString().getBytes(StandardCharsets.UTF_8);
+//            String nickname = new String(bytes, "UTF-8");
+            String nickname = element.getAsJsonObject().get("properties").getAsJsonObject().get("nickname").getAsString();
+
+            System.out.println("id : " + id);
+            System.out.println("email : " + email);
+            System.out.println("nickname : " + nickname);
+
+            br.close();
+
+           return new KakaoUserInfo(id, email, nickname);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /** 카카오 관리자 회원가입 **/
+    @Transactional
+    public PostKakaoUserManagerRes createManagerReq(PostKakaoUserManagerReq postKakaoUserManagerReq) throws BaseException {
+
+        // 초대코드 생성
+        int length = 15;
+        boolean useLetters = true;
+        boolean useNumbers = true;
+        String inviteCode = RandomStringUtils.random(length, useLetters, useNumbers);
+        // 초대코드 중복 확인
+        while(userProvider.checkInviteCode(inviteCode) == 1){
+            inviteCode = RandomStringUtils.random(length, useLetters, useNumbers);
+        }
+        System.out.println(inviteCode); //
+
+        try{
+            // Post - Building
+            // name, address, inviteCode
+            int buildingIdx = authDao.postBuilding(postKakaoUserManagerReq, inviteCode);
+            System.out.println("buildingIdx : "+buildingIdx);
+
+            // Post - User
+            // name, phoneNum, email, password, signupType
+            Long userIdx = authDao.postUserManager(postKakaoUserManagerReq, buildingIdx);
+            System.out.println("userIdx : "+userIdx);
+
+            // 추가된 유저요청인덱스, 건물 인덱스, jwt토큰 반환
+            return new PostKakaoUserManagerRes(userIdx, buildingIdx, postKakaoUserManagerReq.getAccessToken());
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+
+    /** 카카오 주민 회원가입 **/
+    @Transactional
+    public PostKakaoUserResidentRes createResidentReq(PostKakaoUserResidentReq postKakaoUserResidentReq) throws BaseException {
+
+        // 초대코드 존재확인
+        if(userDao.isExistInviteCode(postKakaoUserResidentReq.getInviteCode()) == 0){
+            throw new BaseException(INVALID_INVITECODE);
+        }
+
+        try{
+            // Get - Building
+            // buildingIdx
+            int buildingIdx = userProvider.getBuildingIdx(postKakaoUserResidentReq.getInviteCode());
+
+            // Post - User
+            // userIdx, buildinIdx, name, phoneNum, dong, ho
+            Long userIdx = authDao.postUserResident(postKakaoUserResidentReq, buildingIdx);
+            System.out.println("userIdx : "+userIdx);
+
+            // 추가된 유저인덱스, jwt토큰 반환
+            return new PostKakaoUserResidentRes(userIdx, postKakaoUserResidentReq.getAccessToken());
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 
     /** 일반 로그인 **/
     public PostLoginRes LogIn(PostLoginReq postLoginReq) throws BaseException {
@@ -147,12 +340,23 @@ public class AuthService {
         // 암호화 준 비밀번호를 확인
         if(userInfo.getPassword().equals(encryptPwd)){
             // 비교를 해주고, 이상이 없다면 jwt 발급
-            int userIdx = userInfo.getUserIdx();
+            Long userIdx = userInfo.getUserIdx();
             String jwt = jwtService.createJwt(userIdx);
             return new PostLoginRes(userIdx, jwt);
         }
         else
             throw new BaseException(FAILED_TO_LOGIN);
+    }
+
+
+    /** 로그아웃 **/
+    public void LogOut() throws BaseException {
+        try {
+            jwtService.deleteJwt();
+            System.out.println("만료시간 설정 완료");
+        } catch (Exception exception) {
+            throw new BaseException(LOGOUT_ERROR);
+        }
     }
 
 }
