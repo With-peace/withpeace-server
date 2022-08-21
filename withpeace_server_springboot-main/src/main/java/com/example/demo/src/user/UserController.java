@@ -4,7 +4,8 @@ import com.example.demo.config.BaseException;
 import com.example.demo.config.BaseResponse;
 import com.example.demo.config.BaseResponseStatus;
 import com.example.demo.src.user.model.*;
-import com.example.demo.utils.JwtService;
+import com.example.demo.src.auth.*;
+import com.example.demo.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +29,18 @@ public class UserController {
     private final UserService userService;
     @Autowired
     private final JwtService jwtService;
+    @Autowired
+    private final AuthDao authDao;
+    @Autowired
+    private final TokenVerify tokenVerify;
 
 
-    public UserController(UserProvider userProvider, UserService userService, JwtService jwtService) {
+    public UserController(UserProvider userProvider, UserService userService, JwtService jwtService, AuthDao authDao, TokenVerify tokenVerify) {
         this.userProvider = userProvider;
         this.userService = userService;
         this.jwtService = jwtService;
+        this.authDao = authDao;
+        this.tokenVerify = tokenVerify;
     }
 
     /**
@@ -204,29 +211,30 @@ public class UserController {
 
 
     /**
-     * 로그아웃 테스트 API
-     * [GET] /users/{userIdx}
+     * 토큰 테스트 API
+     * [GET] /users/tokenTest/{userIdx}
      *
      * @return BaseResponse<GetEmailCheck>
      */
     @ResponseBody
-    @GetMapping("/{userIdx}")
-    public BaseResponse<String> LogOutTest(@PathVariable("userIdx") int userIdx) throws BaseException {
-        // jwt 토큰 만료시간 검사
-        jwtService.checkJwtExp();
+    @GetMapping("/tokenTest/{userIdx}")
+    public BaseResponse<String> TokenTest(@PathVariable("userIdx") Long userIdx) throws BaseException {
 
-        // jwt 토큰 검사
-        int userIdxByJwt = jwtService.getUserIdx();
-        if (userIdx != userIdxByJwt) {
-            return new BaseResponse<>(BaseResponseStatus.INVALID_USER_JWT);
+        String first_accessToken = jwtService.getAccessToken(); // 테스트 위한 코드 (원래 access token)
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx);
+
+        String result = "토큰 테스트//";
+        if(first_accessToken != new_accessToken){
+            result += "access token 재발급 - ";
+            result += "new token : " + new_accessToken;
+        }
+        else{
+            result += "access token 정상 - ";
+            result += "first_accessToken : " + first_accessToken;
         }
 
-        String result = "";
-        if (userIdxByJwt > 0) {
-            result = "로그아웃 실패";
-        }else{
-            result = "로그아웃 성공";
-        }
+
         return new BaseResponse<>(result);
     }
 

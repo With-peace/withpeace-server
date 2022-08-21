@@ -4,6 +4,7 @@ package com.example.demo.src.user;
 import com.example.demo.config.BaseException;
 
 import com.example.demo.config.BaseResponse;
+import com.example.demo.src.auth.*;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import com.example.demo.utils.SHA256;
@@ -37,6 +38,7 @@ public class UserService {
     final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final UserDao userDao;
+    private final AuthDao authDao;
     private final UserProvider userProvider;
     private final JwtService jwtService;
     PlatformTransactionManager transactionManager;
@@ -44,8 +46,9 @@ public class UserService {
 
 
     @Autowired
-    public UserService(UserDao userDao, UserProvider userProvider, JwtService jwtService) {
+    public UserService(UserDao userDao, AuthDao authDao, UserProvider userProvider, JwtService jwtService) {
         this.userDao = userDao;
+        this.authDao = authDao;
         this.userProvider = userProvider;
         this.jwtService = jwtService;
 
@@ -95,10 +98,15 @@ public class UserService {
             Long userIdx = userDao.postUserManager(postUserManagerReq, buildingIdx);
             System.out.println("userRequest : "+userIdx);
 
-            String jwt = jwtService.createJwt(userIdx);
+            String accessToken = jwtService.createAccessToken(userIdx);
+            String refreshToken = jwtService.createRefreshToken(userIdx);
+
+            // Update - User
+            // refreshToken
+            userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
             // 추가된 유저인덱스, 건물 인덱스 반환
-            return new PostUserManagerRes(userIdx, buildingIdx, jwt);
+            return new PostUserManagerRes(userIdx, buildingIdx, accessToken, refreshToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -138,14 +146,18 @@ public class UserService {
             Long userIdx = userDao.postUserResident(buildingIdx, postUserResidentReq);
             System.out.println("userIdx : "+userIdx);
 
-            String jwt = jwtService.createJwt(userIdx);
+            String accessToken = jwtService.createAccessToken(userIdx);
+            String refreshToken = jwtService.createRefreshToken(userIdx);
+
+            // Update - User
+            // refreshToken
+            userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
             // 추가된 유저요청인덱스, 건물 인덱스 반환
-            return new PostUserResidentRes(userIdx, jwt);
+            return new PostUserResidentRes(userIdx, accessToken, refreshToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
     }
-
 
 }

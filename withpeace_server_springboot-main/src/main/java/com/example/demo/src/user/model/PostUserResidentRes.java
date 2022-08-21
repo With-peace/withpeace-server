@@ -11,5 +11,6 @@ import java.lang.Long;
 @AllArgsConstructor
 public class PostUserResidentRes {
     private Long userIdx;
-    private String jwt;
+    private String accessToken;
+    private String refreshToken;
 }

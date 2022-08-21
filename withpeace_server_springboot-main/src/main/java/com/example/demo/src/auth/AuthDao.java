@@ -111,4 +111,39 @@ public class AuthDao {
         return this.jdbcTemplate.queryForObject(lastInsertIdQuery,Long.class);
     }
 
+
+    /** 카카오 리프레시 토큰 저장 - User **/
+    public void saveRefreshToken(Long userIdx, String refreshToken){
+        // Update - User
+        // userIdx, refreshToken
+        String createUserRequestQuery = "update User set refreshToken = ? where userIdx = ? ";
+
+        Object[] createUserRequestParams = new Object[]{
+                refreshToken, userIdx};
+
+        this.jdbcTemplate.update(createUserRequestQuery, createUserRequestParams);
+
+    }
+
+    /** 리프레시 토큰 조회 **/
+    public String getRefreshToken(Long userIdx){
+        // Update - User
+        // userIdx, refreshToken
+        String getRefreshTokenQuery = "select refreshToken from User where userIdx = ? ";
+
+        Object[] getRefreshTokenParams = new Object[]{userIdx};
+
+        return this.jdbcTemplate.queryForObject(getRefreshTokenQuery,
+                String.class,
+                getRefreshTokenParams);
+
+    }
+
+    public void logOut(Long userIdx){
+        String modifyUserNameQuery = "update User set refreshToken = null where userIdx = ? ";
+        Object[] modifyUserNameParams = new Object[]{userIdx};
+
+        this.jdbcTemplate.update(modifyUserNameQuery,modifyUserNameParams);
+    }
+
 }

@@ -168,13 +168,13 @@ public class UserDao {
                 isExistInviteCodeParams);
     }
 
-//
-//    public int modifyUserName(PatchUserReq patchUserReq){
-//        String modifyUserNameQuery = "update User set nickName = ? where userIdx = ? ";
-//        Object[] modifyUserNameParams = new Object[]{patchUserReq.getNickName(), patchUserReq.getUserIdx()};
-//
-//        return this.jdbcTemplate.update(modifyUserNameQuery,modifyUserNameParams);
-//    }
+
+    public void SaveRefeshTokenUserManager(Long userIdx, String refreshToken){
+        String modifyUserNameQuery = "update User set refreshToken = ? where userIdx = ? ";
+        Object[] modifyUserNameParams = new Object[]{refreshToken, userIdx};
+
+        this.jdbcTemplate.update(modifyUserNameQuery,modifyUserNameParams);
+    }
 
 
 

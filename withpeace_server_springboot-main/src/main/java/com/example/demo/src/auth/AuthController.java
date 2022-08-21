@@ -116,7 +116,7 @@ public class AuthController {
      */
     @ResponseBody
     @GetMapping("/kakao")
-    public BaseResponse<KakaoCallbackRes> kakaoCallback(@RequestParam String accessToken) {
+    public BaseResponse<KakaoCallbackRes> kakaoCallback(@RequestParam String accessToken, String refreshToken) {
         try{
             // ACCESS_TOKEN을 통해 사용자 정보 가져오기
             KakaoUserInfo kakaoUserInfo = authService.getKakaoUserInfo(accessToken);
@@ -132,24 +132,11 @@ public class AuthController {
                 nextLevel = "Signup";
 
             }
-            KakaoCallbackRes kakaoCallbackRes = new KakaoCallbackRes(kakaoUserInfo.getId(), kakaoUserInfo.getNickname(), accessToken, nextLevel);
+            KakaoCallbackRes kakaoCallbackRes = new KakaoCallbackRes(kakaoUserInfo.getId(), kakaoUserInfo.getNickname(), accessToken, refreshToken, nextLevel);
             return new BaseResponse<>(kakaoCallbackRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
         }
-    }
-
-
-    /**
-     * 카카오 로그인 API
-     * [POST] /auth/kakao/login
-     * @return BaseResponse<PostLoginRes>
-     */
-    @ResponseBody
-    @PostMapping("/kakao/login")
-    public BaseResponse<PostLoginRes> kakaoLogin(@RequestBody KakaoCallbackRes kakaoCallbackRes) {
-        PostLoginRes postLoginRes = new PostLoginRes(kakaoCallbackRes.getUserIdx(), kakaoCallbackRes.getAccessToken());
-        return new BaseResponse<>(postLoginRes);
     }
 
 
@@ -244,6 +231,23 @@ public class AuthController {
         }
     }
 
+    /**
+     * 카카오 로그인 API
+     * [POST] /auth/kakao/login
+     * @return BaseResponse<PostLoginRes>
+     */
+    @ResponseBody
+    @PostMapping("/kakao/login")
+    public BaseResponse<PostLoginRes> kakaoLogin(@RequestBody KakaoCallbackRes kakaoCallbackRes) {
+        try{
+
+            PostLoginRes postLoginRes = authService.KakaoLogIn(kakaoCallbackRes.getUserIdx());
+            return new BaseResponse<>(postLoginRes);
+
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
     /**
      * 일반 로그인 API
@@ -282,16 +286,16 @@ public class AuthController {
      */
     @ResponseBody
     @PostMapping("/logout/{userIdx}")
-    public BaseResponse<String> logOut(@PathVariable("userIdx") Integer userIdx) throws BaseException {
+    public BaseResponse<String> logOut(@PathVariable("userIdx") Long userIdx) throws BaseException {
 
-        // jwt 토큰 검사
-        int userIdxByJwt = jwtService.getUserIdx();
+        // ACCESS TOKEN 검사
+        Long userIdxByJwt = jwtService.getUserIdxAccessToken();
         if(userIdx != userIdxByJwt){
             return new BaseResponse<>(BaseResponseStatus.INVALID_USER_JWT);
         }
 
         try{
-            authService.LogOut();
+            authService.logOut(userIdx);
             String result = "로그아웃이 완료되었습니다.";
             return new BaseResponse<>(result);
 

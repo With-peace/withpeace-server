@@ -11,5 +11,6 @@ import java.math.BigInteger;
 @AllArgsConstructor
 public class PostLoginRes {
     private Long userIdx;
-    private String jwt;
+    private String accessToken;
+    private String refreshToken;
 }

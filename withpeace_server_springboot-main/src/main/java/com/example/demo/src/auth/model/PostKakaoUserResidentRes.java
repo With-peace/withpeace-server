@@ -9,5 +9,6 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PostKakaoUserResidentRes {
     private Long userIdx;
-    private String jwt;
+    private String accessToken;
+    private String refreshToken;
 }

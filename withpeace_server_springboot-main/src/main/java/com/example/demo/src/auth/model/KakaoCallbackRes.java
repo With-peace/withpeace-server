@@ -13,5 +13,6 @@ public class KakaoCallbackRes {
     private Long userIdx;
     private String name;
     private String accessToken;
+    private String refreshToken;
     private String nextLevel;
 }
