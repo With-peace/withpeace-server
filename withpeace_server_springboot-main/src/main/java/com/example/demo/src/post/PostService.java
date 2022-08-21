@@ -172,4 +172,71 @@ public class PostService {
     }
 
 
+    /** 게시글 삭제 **/
+    @Transactional
+    public PostDeleteRes deletePost(Integer postIdx, Long userIdx, String accessToken) throws BaseException {
+
+        // 게시글 존재여부 확인
+        if(postProvider.checkPost(postIdx) == 0){
+            throw new BaseException(POST_DELETE_INVALID_POSTIDX);
+        }
+
+        // 유저가 접근가능한 게시글인지 확인
+        if(postProvider.checkPostUser(postIdx, userIdx) == false){
+            throw new BaseException(POST_DELETE_INVALID_USER);
+        }
+
+        try{
+            // Post - PATCH
+            // postIdx
+            postDao.deletePost(postIdx);
+            System.out.println("삭제된 postIdx : "+postIdx);
+
+            // PostImage - GET
+            // postIdx
+            List<String> postImageUrls = postDao.getPostImage(postIdx);
+
+            // 파일 삭제
+            boolean deleteResult = deletePostImage(postImageUrls);
+            if(!deleteResult){
+                // 파일 삭제에 실패한 경우
+                throw new BaseException(POST_DELETE_POSTIMAGE);
+            }
+
+            // PostImage - PATCH
+            // postIdx
+            postDao.deletePostImage(postIdx);
+
+            // 삭제된 게시글 인덱스
+            return new PostDeleteRes(postIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 게시글 삭제 - 이미지 파일 삭제 **/
+    @Transactional
+    public boolean deletePostImage(List<String> postImageUrls) {
+
+        if (postImageUrls.size() == 0) {
+            // 게시글에 이미지가 없는 경우
+            return true;
+        }
+
+        try{
+            boolean result = false;
+
+            for(int i=0; i<postImageUrls.size(); i++){
+                File file = new File(postImageUrls.get(i));
+                result = file.delete();
+            }
+
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
 }

@@ -21,6 +21,10 @@ public enum BaseResponseStatus {
     EMPTY_JWT(false, 2001, "JWT를 입력해주세요."),
     INVALID_JWT(false, 2002, "유효하지 않은 JWT입니다."),
     INVALID_USER_JWT(false,2003,"권한이 없는 유저의 접근입니다."),
+    INVALID_USER_ACCESSTOKEN(false,2004,"권한이 없는 유저의 접근입니다.(ACCESS TOKEN)"),
+    INVALID_USER_REFRESHTOKEN(false,2005,"권한이 없는 유저의 접근입니다.(REFRESH TOKEN)"),
+    ISEXPIRED_REFRESH_TOKEN(false,2006,"토큰이 만료되어 로그아웃 되었습니다.(REFRESH TOKEN)"),
+    NOTEQUALS_DB_HEADER_REFRESH_TOKEN(false,2007,"토큰이 유효하지 않습니다.(REFRESH TOKEN)"),
 
     // users
     USERS_EMPTY_USER_ID(false, 2010, "유저 아이디 값을 확인해주세요."),
@@ -59,7 +63,7 @@ public enum BaseResponseStatus {
     POST_POSTS_EMPTY_TYPE(false, 2063, "타입을 입력해주세요."),
     POST_POSTS_INVAILD_TYPE(false, 2064, "타입을 확인해주세요."),
 
-    // [PATCH] /posts/:postIdx/status
+    // [PATCH] /posts/delete/:postIdx
     POST_DELETE_EMPTY_POSTIDX(false, 2070, "게시글 인덱스를 확인해주세요."),
     POST_DELETE_INVALID_POSTIDX(false,2071,"존재하지 않는 게시글입니다."),
     POST_DELETE_INVALID_USER(false,2072,"접근권한이 없는 유저입니다."),
@@ -77,6 +81,8 @@ public enum BaseResponseStatus {
     FAILED_TO_LOGIN(false,3014,"없는 아이디거나 비밀번호가 틀렸습니다."),
     INVALID_INVITECODE(false,3015,"존재하지 않는 초대코드 입니다."),
 
+    FAILED_TO_KAKAOLOGIN(false,3016,"[카카오 로그인] 없는 아이디거나 비밀번호가 틀렸습니다."),
+
 
 
     /**
@@ -89,7 +95,10 @@ public enum BaseResponseStatus {
     MODIFY_FAIL_USERNAME(false,4014,"유저네임 수정 실패"),
 
     PASSWORD_ENCRYPTION_ERROR(false, 4011, "비밀번호 암호화에 실패하였습니다."),
-    PASSWORD_DECRYPTION_ERROR(false, 4012, "비밀번호 복호화에 실패하였습니다.");
+    PASSWORD_DECRYPTION_ERROR(false, 4012, "비밀번호 복호화에 실패하였습니다."),
+
+    // [PATCH] /posts/delete/:postIdx
+    POST_DELETE_POSTIMAGE(false, 4015, "이미지 파일 삭제에 실패하였습니다.");
 
 
     // 5000 : 필요시 만들어서 쓰세요

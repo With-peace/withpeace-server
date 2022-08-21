@@ -100,5 +100,41 @@ public class PostController {
     }
 
 
+    /**
+     * 게시글 삭제 API
+     * [PATCH] /posts/delete/:postIdx
+     *
+     * @return BaseResponse<PostDeleteRes>
+     */
+    @ResponseBody
+    @PatchMapping("/delete/{postIdx}")
+    public BaseResponse<PostDeleteRes> deletePost(@PathVariable("postIdx") Integer postIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 게시글 인덱스를 입력하지 않았을 떄
+        if (postIdx == null) {
+            return new BaseResponse<>(POST_DELETE_EMPTY_POSTIDX);
+        }
+
+        try {
+
+            PostDeleteRes postDeleteRes = postService.deletePost(postIdx, userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(postDeleteRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
 
 }

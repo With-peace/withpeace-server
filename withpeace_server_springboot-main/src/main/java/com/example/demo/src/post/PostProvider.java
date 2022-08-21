@@ -26,4 +26,28 @@ public class PostProvider {
         this.postDao = postDao;
         this.jwtService = jwtService;
     }
+
+    /** 게시글 존재여부 확인 **/
+    public int checkPost(Integer postIdx) throws BaseException{
+        try{
+            return postDao.checkPost(postIdx);
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 유저가 접근가능한 게시글인지 확인 **/
+    public boolean checkPostUser(Integer postIdx, Long userIdx) throws BaseException{
+        try{
+            Long postUserIdx = postDao.checkPostUser(postIdx);
+            if(postUserIdx == userIdx){
+                return true;
+            }
+            else{
+                return false;
+            }
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }

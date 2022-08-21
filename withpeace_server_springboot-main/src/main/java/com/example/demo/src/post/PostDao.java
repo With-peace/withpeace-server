@@ -6,6 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.lang.Long;
+import java.util.List;
 
 import javax.sql.DataSource;
 
@@ -49,5 +50,50 @@ public class PostDao {
 
     }
 
-    
+    /** 게시글 존재여부 확인 **/
+    public int checkPost(Integer postIdx){
+        String checkEmailQuery = "select exists(select postIdx from Post where postIdx = ? and status='ACTIVE')";
+        Integer checkEmailParams = postIdx;
+        return this.jdbcTemplate.queryForObject(checkEmailQuery,
+                int.class,
+                checkEmailParams);
+    }
+
+    /** 유저가 접근가능한 게시글인지 확인 **/
+    public Long checkPostUser(Integer postIdx){
+        String checkPostUserQuery = "select userIdx from Post where postIdx = ? and status='ACTIVE'";
+        Integer checkPostUserParams = postIdx;
+        return this.jdbcTemplate.queryForObject(checkPostUserQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> rs.getLong("userIdx"), checkPostUserParams);
+    }
+
+    /** 게시글 삭제 - Post **/
+    public int deletePost(Integer postIdx){
+        String deletePostQuery = "UPDATE Post SET status='DELETED' WHERE postIdx=?";
+        Object[] deletePostParams = new Object[] {postIdx};
+        return this.jdbcTemplate.update(deletePostQuery, deletePostParams);
+
+    }
+
+    /** 게시글 삭제 - 이미지 파일의 경로 get - PostImage **/
+    public List<String> getPostImage(Integer postIdx){
+        // Get - PostImage
+        // postImageUrl
+        String getPostImageQuery = "select postImageUrl from PostImage where postIdx=? and status='ACTIVE'";
+        Integer getPostImageParams = postIdx;
+
+        List<String> postImageUrls = this.jdbcTemplate.query(getPostImageQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> rs.getString("postImageUrl"), getPostImageParams);
+
+        return postImageUrls;
+    }
+
+    /** 게시글 삭제 - PostImage **/
+    public int deletePostImage(Integer postIdx){
+        String deletePostQuery = "UPDATE PostImage SET status='DELETED' WHERE postIdx=?";
+        Object[] deletePostParams = new Object[] {postIdx};
+        return this.jdbcTemplate.update(deletePostQuery, deletePostParams);
+
+    }
+
 }
