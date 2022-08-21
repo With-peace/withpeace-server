@@ -52,6 +52,18 @@ public enum BaseResponseStatus {
     //[POST] /auth/logout/{userIdx}
     LOGOUT_ERROR(false, 2050, "로그아웃에 실패하였습니다."),
 
+    // [POST] /posts
+    POST_POSTS_EMPTY_TITLE(false, 2060, "제목을 입력해주세요."),
+    POST_POSTS_EMPTY_CONTENT(false, 2061, "내용을 입력해주세요."),
+    POST_POSTS_EMPTY_ISANONYMOUS(false, 2062, "익명여부를 확인해주세요."),
+    POST_POSTS_EMPTY_TYPE(false, 2063, "타입을 입력해주세요."),
+    POST_POSTS_INVAILD_TYPE(false, 2064, "타입을 확인해주세요."),
+
+    // [PATCH] /posts/:postIdx/status
+    POST_DELETE_EMPTY_POSTIDX(false, 2070, "게시글 인덱스를 확인해주세요."),
+    POST_DELETE_INVALID_POSTIDX(false,2071,"존재하지 않는 게시글입니다."),
+    POST_DELETE_INVALID_USER(false,2072,"접근권한이 없는 유저입니다."),
+
 
 
     /**

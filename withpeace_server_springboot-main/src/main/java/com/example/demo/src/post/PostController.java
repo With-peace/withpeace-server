@@ -2,22 +2,25 @@ package com.example.demo.src.post;
 
 import com.example.demo.config.BaseException;
 import com.example.demo.config.BaseResponse;
-import com.example.demo.config.BaseResponseStatus;
 import com.example.demo.src.post.model.*;
-import com.example.demo.src.post.*;
 import com.example.demo.src.auth.*;
-import com.example.demo.src.user.*;
+import com.example.demo.src.user.model.PostUserManagerRes;
 import com.example.demo.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import static com.example.demo.config.BaseResponseStatus.*;
 import static com.example.demo.utils.ValidationRegex.*;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.*;
-import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -39,4 +42,63 @@ public class PostController {
         this.authDao = authDao;
         this.tokenVerify = tokenVerify;
     }
+
+
+    /**
+     * 게시글 생성 API
+     * [POST] /posts
+     *
+     * @return BaseResponse<PostPostsRes>
+     */
+    @ResponseBody
+    @PostMapping("")
+    public BaseResponse<PostPostsRes> createPost(@RequestPart PostPostsReq postPostsReq, List<MultipartFile> postImage
+                                                 ) throws BaseException {
+        // 유저인덱스 입력하지 않았을 때
+        if (postPostsReq.getUserIdx() == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(postPostsReq.getUserIdx());
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        String type = postPostsReq.getType();
+
+        // 타입을 입력하지 않았을 떄
+        if (type == null) {
+            return new BaseResponse<>(POST_POSTS_EMPTY_TYPE);
+        }
+        // 유효한 게시글 타입이 아닐 때
+        if (!type.equals("notice")&&!type.equals("general")&&!type.equals("information")&&!type.equals("share")&&!type.equals("group")&&!type.equals("secondhand")) {
+            return new BaseResponse<>(POST_POSTS_INVAILD_TYPE);
+        }
+        // 제목을 입력하지 않았을 때
+        if (postPostsReq.getTitle() == null) {
+            return new BaseResponse<>(POST_POSTS_EMPTY_TITLE);
+        }
+        // 내용을 입력하지 않았을 때
+        if (postPostsReq.getContent() == null) {
+            return new BaseResponse<>(POST_POSTS_EMPTY_CONTENT);
+        }
+        // 익명여부를 입력하지 않았을 때
+        if (postPostsReq.getIsAnonymous() == null) {
+            return new BaseResponse<>(POST_POSTS_EMPTY_ISANONYMOUS);
+        }
+
+        try {
+
+            PostPostsRes postPostsRes = postService.createPost(postImage, postPostsReq, accessToken);
+            return new BaseResponse<>(postPostsRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+
 }
