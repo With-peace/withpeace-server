@@ -214,6 +214,7 @@ public class PostService {
         }
     }
 
+
     /** 게시글 삭제 - 이미지 파일 삭제 **/
     @Transactional
     public boolean deletePostImage(List<String> postImageUrls) {
@@ -237,6 +238,29 @@ public class PostService {
         }
 
         return false;
+    }
+
+
+    /** 게시글 좋아요 **/
+    @Transactional
+    public PostLikeRes createPostLike(Long userIdx, Integer postIdx, String accessToken) throws BaseException {
+
+        // 게시글 존재여부 확인
+        if(postProvider.checkPost(postIdx) == 0){
+            throw new BaseException(POST_DELETE_INVALID_POSTIDX);
+        }
+
+        try{
+            // Post - PostLike
+            // userIdx, postIdx
+            int postLikeIdx = postDao.insertPostLike(userIdx, postIdx);
+            System.out.println("추가된 postLikeIdx : "+postLikeIdx);
+
+            // 추가된 게시글좋아요 인덱스
+            return new PostLikeRes(postLikeIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
     }
 
 }

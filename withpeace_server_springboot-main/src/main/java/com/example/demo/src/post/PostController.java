@@ -2,23 +2,18 @@ package com.example.demo.src.post;
 
 import com.example.demo.config.BaseException;
 import com.example.demo.config.BaseResponse;
+import com.example.demo.config.BaseResponseStatus;
 import com.example.demo.src.post.model.*;
 import com.example.demo.src.auth.*;
-import com.example.demo.src.user.model.PostUserManagerRes;
 import com.example.demo.utils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import static com.example.demo.config.BaseResponseStatus.*;
-import static com.example.demo.utils.ValidationRegex.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.*;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +37,6 @@ public class PostController {
         this.authDao = authDao;
         this.tokenVerify = tokenVerify;
     }
-
 
     /**
      * 게시글 생성 API
@@ -132,6 +126,43 @@ public class PostController {
 
             PostDeleteRes postDeleteRes = postService.deletePost(postIdx, userIdx.get("userIdx"), accessToken);
             return new BaseResponse<>(postDeleteRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
+     * 게시글 좋아요 API
+     * [POST] /posts/like/:postIdx
+     * @return BaseResponse<PostLikeRes>
+     */
+    @ResponseBody
+    @PostMapping("/like/{postIdx}")
+    public BaseResponse<PostLikeRes> createPostLike(@PathVariable("postIdx") Integer postIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 게시글 인덱스를 입력하지 않았을 떄
+        if (postIdx == null) {
+            return new BaseResponse<>(POST_DELETE_EMPTY_POSTIDX);
+        }
+
+        try {
+            PostLikeRes postLikeRes = postService.createPostLike(userIdx.get("userIdx"), postIdx, accessToken);
+            return new BaseResponse<>(postLikeRes);
+
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }

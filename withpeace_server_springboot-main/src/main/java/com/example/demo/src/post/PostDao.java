@@ -96,4 +96,20 @@ public class PostDao {
 
     }
 
+    /** 게시글 좋아요 - PostLike **/
+    public int insertPostLike(Long userIdx, Integer postIdx){
+        // Post - PostLike
+        // userIdx, postIdx
+        String insertPostLikeQuery = "insert into PostLike (userIdx, postIdx) VALUES (?,?)";
+
+        Object[] insertPostLikeParams = new Object[]{
+                userIdx,
+                postIdx};
+
+        this.jdbcTemplate.update(insertPostLikeQuery, insertPostLikeParams);
+
+        String lastInsertIdQuery = "select last_insert_id()";
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
+    }
+
 }
