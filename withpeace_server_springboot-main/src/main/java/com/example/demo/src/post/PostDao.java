@@ -112,4 +112,32 @@ public class PostDao {
         return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
     }
 
+    /** 게시글 좋아요 존재여부 확인 **/
+    public int checkPostLike(Integer postLikeIdx){
+        String checkPostLikeQuery = "select exists(select postLikeIdx from PostLike where postLikeIdx = ?)";
+        Integer checkPostLikeParams = postLikeIdx;
+        return this.jdbcTemplate.queryForObject(checkPostLikeQuery,
+                int.class,
+                checkPostLikeParams);
+    }
+
+    /** 유저가 접근가능한 게시글 좋아요인지 확인 **/
+    public Long checkPostLikeUser(Integer postLikeIdx){
+        String checkPostLikeUserQuery = "select userIdx from PostLike where postLikeIdx = ?";
+        Integer checkPostLikeUserParams = postLikeIdx;
+        return this.jdbcTemplate.queryForObject(checkPostLikeUserQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> rs.getLong("userIdx"), checkPostLikeUserParams);
+    }
+
+    /** 게시글 좋아요 취소 - PostLike **/
+    public void deletePostLike(Integer postLikeIdx){
+        // Delete - PostLike
+        // postLikeIdx
+        String deletePostLikeQuery = "delete from PostLike where postLikeIdx = ?";
+
+        Integer deletePostLikeParams = postLikeIdx;
+
+        this.jdbcTemplate.update(deletePostLikeQuery, deletePostLikeParams);
+    }
+
 }

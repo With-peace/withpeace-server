@@ -263,4 +263,32 @@ public class PostService {
         }
     }
 
+
+    /** 게시글 좋아요 취소 **/
+    @Transactional
+    public PostLikeRes deletePostLike(Long userIdx, Integer postLikeIdx, String accessToken) throws BaseException {
+
+        // 게시글 좋아요 존재여부 확인
+        if(postProvider.checkPostLike(postLikeIdx) == 0){
+            throw new BaseException(POST_DELETE_INVALID_POSTLIKEIDX);
+        }
+
+        // 유저가 접근가능한 게시글 좋아요 인지 확인
+        if(postProvider.checkPostLikeUser(postLikeIdx, userIdx) == false){
+            throw new BaseException(POST_DELETE_INVALID_USER);
+        }
+
+        try{
+            // Delete - PostLike
+            // postLikeIdx, userIdx
+            postDao.deletePostLike(postLikeIdx);
+            System.out.println("삭제된 postLikeIdx : "+postLikeIdx);
+
+            // 삭제된 게시글좋아요 인덱스
+            return new PostLikeRes(postLikeIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

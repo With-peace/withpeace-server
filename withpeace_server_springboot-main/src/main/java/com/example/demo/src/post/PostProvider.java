@@ -50,4 +50,29 @@ public class PostProvider {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    /** 게시글 좋아요 존재여부 확인 **/
+    public int checkPostLike(Integer postLikeIdx) throws BaseException{
+        try{
+            return postDao.checkPostLike(postLikeIdx);
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 유저가 접근가능한 게시글 좋아요인지 확인 **/
+    public boolean checkPostLikeUser(Integer postLikeIdx, Long userIdx) throws BaseException{
+        try{
+            Long postLikeUserIdx = postDao.checkPostLikeUser(postLikeIdx);
+            if(postLikeUserIdx == userIdx){
+                return true;
+            }
+            else{
+                return false;
+            }
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

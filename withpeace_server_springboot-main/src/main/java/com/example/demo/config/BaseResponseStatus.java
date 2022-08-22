@@ -25,6 +25,7 @@ public enum BaseResponseStatus {
     INVALID_USER_REFRESHTOKEN(false,2005,"권한이 없는 유저의 접근입니다.(REFRESH TOKEN)"),
     ISEXPIRED_REFRESH_TOKEN(false,2006,"토큰이 만료되어 로그아웃 되었습니다.(REFRESH TOKEN)"),
     NOTEQUALS_DB_HEADER_REFRESH_TOKEN(false,2007,"토큰이 유효하지 않습니다.(REFRESH TOKEN)"),
+    INVALID_ACCESSTOKEN(false,2008,"유효하지 않은 JWT입니다.(ACCESS TOKEN)"),
 
     // users
     USERS_EMPTY_USER_ID(false, 2010, "유저 아이디 값을 확인해주세요."),
@@ -67,6 +68,10 @@ public enum BaseResponseStatus {
     POST_DELETE_EMPTY_POSTIDX(false, 2070, "게시글 인덱스를 확인해주세요."),
     POST_DELETE_INVALID_POSTIDX(false,2071,"존재하지 않는 게시글입니다."),
     POST_DELETE_INVALID_USER(false,2072,"접근권한이 없는 유저입니다."),
+
+    // [DELETE] /posts/deleteLike/:postLikeIdx
+    POST_DELETE_EMPTY_POSTLIKEIDX(false, 2073, "게시글좋아요 인덱스를 확인해주세요."),
+    POST_DELETE_INVALID_POSTLIKEIDX(false,2074,"존재하지 않는 게시글좋아요 입니다."),
 
 
 
