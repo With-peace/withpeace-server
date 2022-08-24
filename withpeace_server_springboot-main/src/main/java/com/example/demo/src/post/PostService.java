@@ -291,4 +291,27 @@ public class PostService {
         }
     }
 
+
+    /** 게시글 좋아요 **/
+    @Transactional
+    public PostSaveRes createPostSave(Long userIdx, Integer postIdx, String accessToken) throws BaseException {
+
+        // 게시글 존재여부 확인
+        if(postProvider.checkPost(postIdx) == 0){
+            throw new BaseException(POST_DELETE_INVALID_POSTIDX);
+        }
+
+        try{
+            // Post - PostSave
+            // userIdx, postIdx
+            int postSaveIdx = postDao.insertPostSave(userIdx, postIdx);
+            System.out.println("추가된 postSaveIdx : "+postSaveIdx);
+
+            // 추가된 게시글저장 인덱스
+            return new PostSaveRes(postSaveIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

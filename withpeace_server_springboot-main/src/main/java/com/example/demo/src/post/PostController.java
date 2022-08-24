@@ -205,4 +205,41 @@ public class PostController {
         }
     }
 
+
+    /**
+     * 게시글 저장 API
+     * [POST] /posts/save/:postIdx
+     * @return BaseResponse<PostSaveRes>
+     */
+    @ResponseBody
+    @PostMapping("/save/{postIdx}")
+    public BaseResponse<PostSaveRes> createPostSave(@PathVariable("postIdx") Integer postIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 게시글 인덱스를 입력하지 않았을 떄
+        if (postIdx == null) {
+            return new BaseResponse<>(POST_DELETE_EMPTY_POSTIDX);
+        }
+
+        try {
+            PostSaveRes postSaveRes = postService.createPostSave(userIdx.get("userIdx"), postIdx, accessToken);
+            return new BaseResponse<>(postSaveRes);
+
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 }

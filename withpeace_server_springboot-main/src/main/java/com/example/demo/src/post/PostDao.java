@@ -140,4 +140,20 @@ public class PostDao {
         this.jdbcTemplate.update(deletePostLikeQuery, deletePostLikeParams);
     }
 
+    /** 게시글 저장 - PostSave **/
+    public int insertPostSave(Long userIdx, Integer postIdx){
+        // Post - PostSave
+        // userIdx, postIdx
+        String insertPostSaveQuery = "insert into PostSave (userIdx, postIdx) VALUES (?,?)";
+
+        Object[] insertPostSaveParams = new Object[]{
+                userIdx,
+                postIdx};
+
+        this.jdbcTemplate.update(insertPostSaveQuery, insertPostSaveParams);
+
+        String lastInsertIdQuery = "select last_insert_id()";
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
+    }
+
 }
