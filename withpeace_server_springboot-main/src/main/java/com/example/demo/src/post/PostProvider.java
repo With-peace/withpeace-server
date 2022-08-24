@@ -75,4 +75,28 @@ public class PostProvider {
         }
     }
 
+    /** 게시글 저장 존재여부 확인 **/
+    public int checkPostSave(Integer postSaveIdx) throws BaseException{
+        try{
+            return postDao.checkPostSave(postSaveIdx);
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 유저가 접근가능한 게시글 저장인지 확인 **/
+    public boolean checkPostSaveUser(Integer postSaveIdx, Long userIdx) throws BaseException{
+        try{
+            Long postSaveUserIdx = postDao.checkPostSaveUser(postSaveIdx);
+            if(postSaveUserIdx == userIdx){
+                return true;
+            }
+            else{
+                return false;
+            }
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

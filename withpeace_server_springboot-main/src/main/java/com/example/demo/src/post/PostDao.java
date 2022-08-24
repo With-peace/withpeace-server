@@ -156,4 +156,32 @@ public class PostDao {
         return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
     }
 
+    /** 게시글 저장 존재여부 확인 **/
+    public int checkPostSave(Integer postSaveIdx){
+        String checkPostSaveQuery = "select exists(select postSaveIdx from PostSave where postSaveIdx = ?)";
+        Integer checkPostSaveParams = postSaveIdx;
+        return this.jdbcTemplate.queryForObject(checkPostSaveQuery,
+                int.class,
+                checkPostSaveParams);
+    }
+
+    /** 유저가 접근가능한 게시글 저장인지 확인 **/
+    public Long checkPostSaveUser(Integer postSaveIdx){
+        String checkPostSaveUserQuery = "select userIdx from PostSave where postSaveIdx = ?";
+        Integer checkPostSaveUserParams = postSaveIdx;
+        return this.jdbcTemplate.queryForObject(checkPostSaveUserQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> rs.getLong("userIdx"), checkPostSaveUserParams);
+    }
+
+    /** 게시글 저장 취소 - PostSave **/
+    public void deletePostSave(Integer postSaveIdx){
+        // Delete - PostSave
+        // postSaveIdx
+        String deletePostSaveQuery = "delete from PostSave where postSaveIdx = ?";
+
+        Integer deletePostSaveParams = postSaveIdx;
+
+        this.jdbcTemplate.update(deletePostSaveQuery, deletePostSaveParams);
+    }
+
 }

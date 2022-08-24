@@ -73,6 +73,10 @@ public enum BaseResponseStatus {
     POST_DELETE_EMPTY_POSTLIKEIDX(false, 2073, "게시글좋아요 인덱스를 확인해주세요."),
     POST_DELETE_INVALID_POSTLIKEIDX(false,2074,"존재하지 않는 게시글좋아요 입니다."),
 
+    // [DELETE] /posts/deleteSave/:postSaveIdx
+    POST_DELETE_EMPTY_POSTSAVEIDX(false, 2075, "게시글저장 인덱스를 확인해주세요."),
+    POST_DELETE_INVALID_POSTSAVEIDX(false,2076,"존재하지 않는 게시글저장 입니다."),
+
 
 
     /**
