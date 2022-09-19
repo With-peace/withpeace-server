@@ -1,5 +1,8 @@
 package com.example.demo.src.post;
 
+import com.example.demo.src.post.model.GetCommentRes;
+import com.example.demo.src.post.model.GetPostImageRes;
+import com.example.demo.src.post.model.GetPostRes;
 import com.example.demo.src.post.model.PostPostsReq;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,6 +16,8 @@ import javax.sql.DataSource;
 @Repository
 public class PostDao {
     private JdbcTemplate jdbcTemplate;
+    private List<GetPostImageRes> getPostImageRes;
+    private List<GetCommentRes> getCommentRes;
 
     @Autowired
     public void setDataSource(DataSource dataSource){
@@ -182,6 +187,79 @@ public class PostDao {
         Integer deletePostSaveParams = postSaveIdx;
 
         this.jdbcTemplate.update(deletePostSaveQuery, deletePostSaveParams);
+    }
+
+    /** 게시글 조회 **/
+    public GetPostRes selectPost(Long userIdx, int postIdx, String accessToken){
+        String selectPostQuery =
+                "select U.userIdx, U.profileImgUrl,\n" +
+                "       If(P.isAnonymous = 'Y', '익명', U.name) as name,\n" +
+                "       P.postIdx, P.title, P.content,\n" +
+                "       If(likeCount is null, 0, likeCount) as likeCount,\n" +
+                "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
+                "       case\n" +
+                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
+                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as updatedAt,\n" +
+                "       IF(PL.userIdx = ?, 'Y', 'N') as likeOrNot,\n" +
+                "       IF(PS.userIdx = ?, 'Y', 'N') as saveOrNot\n" +
+                "from Post as P\n" +
+                "    left join User U on P.userIdx = U.userIdx\n" +
+                "    left join(select postIdx, userIdx, postLikeIdx, count(postLikeIdx)as likeCount from PostLike)\n" +
+                "        PL on PL.postIdx = P.postIdx\n" +
+                "    left join(select postIdx, userIdx, postSaveIdx from PostSave)\n" +
+                "        PS on PS.postIdx = P.postIdx\n" +
+                "    left join(select postIdx, commentIdx, count(commentIdx)as commentCount from Comment)\n" +
+                "        C on C.postIdx = P.postIdx\n" +
+                "where P.postIdx = ? and P.status = 'ACTIVE'";
+        Object[] selectPostParam = new Object[] {userIdx, userIdx, postIdx};
+        return this.jdbcTemplate.queryForObject(selectPostQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> new GetPostRes(
+                        rs.getInt("userIdx"),
+                        rs.getString("profileImgUrl"),
+                        rs.getString("name"),
+                        rs.getString("title"),
+                        rs.getString("content"),
+                        getPostImageRes = this.jdbcTemplate.query(
+                                "SELECT PI.postImageIdx, PI.postImageUrl\n" +
+                                    "FROM PostImage as PI\n" +
+                                    "join Post as P on P.postIdx = PI.postIdx\n" +
+                                    "WHERE P.postIdx = ?",
+                                (rk, rownum) -> new GetPostImageRes(
+                                        rk.getInt("postImageIdx"),
+                                        rk.getString("postImageUrl")
+                                ), rs.getInt("postIdx")
+                        ),
+                        rs.getInt("likeCount"),
+                        rs.getInt("commentCount"),
+                        rs.getString("updatedAt"),
+                        rs.getString("likeOrNot"),
+                        rs.getString("saveOrNot"),
+                        getCommentRes = this.jdbcTemplate.query(
+                                "SELECT C.commentIdx, U.userIdx,\n" +
+                                    "       If(C.isAnonymous = 'Y', '익명', U.name) as name,\n" +
+                                    "       U.profileImgUrl, C.content,\n" +
+                                    "       case\n" +
+                                    "        when timestampdiff(day , C.updatedAt, current_timestamp) < 365\n" +
+                                    "        then date_format(C.updatedAt, '%m/%d %h:%i')\n" +
+                                    "        else date_format(C.updatedAt, '%Y/%m/%d %h:%i')\n" +
+                                    "        end as updatedAt\n" +
+                                    "FROM Comment as C\n" +
+                                    "    left join User U on C.userIdx = U.userIdx\n" +
+                                    "    left join Post P on C.postIdx = P.postIdx\n" +
+                                    "WHERE C.status = 'ACTIVE' and C.postIdx = ?",
+                                (rc, rownuM) -> new GetCommentRes(
+                                        rc.getInt("commentIdx"),
+                                        rc.getInt("userIdx"),
+                                        rc.getString("name"),
+                                        rc.getString("profileImgUrl"),
+                                        rc.getString("content"),
+                                        rc.getString("updatedAt")
+                                ), rs.getInt("postIdx")
+                        ),
+                        accessToken
+                ), selectPostParam);
     }
 
 }

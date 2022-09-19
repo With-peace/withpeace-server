@@ -99,4 +99,18 @@ public class PostProvider {
         }
     }
 
+    /** 게시글 조회 **/
+    public GetPostRes getPost(Long userIdx, int postIdx, String accessToken) throws BaseException {
+
+        try{
+            GetPostRes getPost = postDao.selectPost(userIdx, postIdx, accessToken);
+
+            return getPost;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

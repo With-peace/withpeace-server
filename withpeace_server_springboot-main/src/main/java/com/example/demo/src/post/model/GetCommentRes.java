@@ -7,10 +7,11 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class PostPostsReq {
-    private Long userIdx;
-    private String type;
-    private String title;
+public class GetCommentRes {
+    private int commentIdx;
+    private int userIdx;
+    private String name;
+    private String profileImgUrl;
     private String content;
-    private String isAnonymous;
+    private String updatedAt;
 }
