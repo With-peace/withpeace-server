@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 import static com.example.demo.config.BaseResponseStatus.*;
 
 //Provider : Read의 비즈니스 로직 처리
@@ -106,6 +108,22 @@ public class PostProvider {
             GetPostRes getPost = postDao.selectPost(userIdx, postIdx, accessToken);
 
             return getPost;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 관리자 공지 리스트 조회 **/
+    public GetNoticeListRes getNoticeList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            List<GetNoticeList> getNoticeList = postDao.selectNoticeList(userIdx);
+
+            GetNoticeListRes getNoticeListRes = new GetNoticeListRes(getNoticeList, accessToken);
+
+            return getNoticeListRes;
         }
         catch (Exception exception) {
             System.out.println(exception);

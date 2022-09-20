@@ -308,4 +308,33 @@ public class PostController {
         }
     }
 
+
+    /**
+     * 관리자 공지 리스트 조회 API
+     * [GET] /posts/notification
+     * @return BaseResponse<GetNoticeListRes>
+     */
+    @ResponseBody
+    @GetMapping("/notification")
+    public BaseResponse<GetNoticeListRes> getPost(@RequestBody Map<String, Long> userIdx) {
+        try{
+            // 유저인덱스 입력하지 않았을 때
+            if (userIdx.get("userIdx") == null) {
+                return new BaseResponse<>(USERS_EMPTY_USER_ID);
+            }
+
+            String first_accessToken = jwtService.getAccessToken();
+            // 토큰 검증
+            String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+            String accessToken = null;
+            if(first_accessToken != new_accessToken){
+                accessToken = new_accessToken;
+            }
+            GetNoticeListRes getNoticeList = postProvider.getNoticeList(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(getNoticeList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 }

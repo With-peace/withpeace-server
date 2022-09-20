@@ -1,9 +1,6 @@
 package com.example.demo.src.post;
 
-import com.example.demo.src.post.model.GetCommentRes;
-import com.example.demo.src.post.model.GetPostImageRes;
-import com.example.demo.src.post.model.GetPostRes;
-import com.example.demo.src.post.model.PostPostsReq;
+import com.example.demo.src.post.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -260,6 +257,48 @@ public class PostDao {
                         ),
                         accessToken
                 ), selectPostParam);
+    }
+
+    /** 관리자 공지 리스트 조회 **/
+    public List<GetNoticeList> selectNoticeList(Long userIdx){
+        String selectBuildingIdxQuery =
+                "select buildingIdx\n" +
+                        "from User\n" +
+                        "where userIdx=?";
+        int buildingIdx = this.jdbcTemplate.queryForObject(selectBuildingIdxQuery,
+                (rs,rowNum) -> rs.getInt("buildingIdx"), userIdx);
+
+        String selectNoticeListQuery =
+                "select P.postIdx, P.title, P.content,\n" +
+                "       IF(likeCount is null, 0, likeCount) as likeCount,\n" +
+                "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
+                "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
+                "       case\n" +
+                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
+                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as updatedAt\n" +
+                "from Post as P\n" +
+                "    left join (select userIdx, buildingIdx from User where userLevel='Manager')\n" +
+                "        U on U.buildingIdx=?\n" +
+                "    left join(select postIdx, userIdx, count(postLikeIdx)as likeCount from PostLike group by postIdx)\n" +
+                "        PL on P.postIdx = PL.postIdx\n" +
+                "    left join(select postIdx, count(commentIdx)as commentCount from Comment group by postIdx)\n" +
+                "        C on C.postIdx = P.postIdx\n" +
+                "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
+                "        PI on PI.postIdx = P.postIdx\n" +
+                "where P.userIdx=U.userIdx and P.type='notice' and P.status='ACTIVE'\n" +
+                "group by postIdx";
+        return this.jdbcTemplate.query(selectNoticeListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> new GetNoticeList(
+                        rs.getInt("postIdx"),
+                        rs.getString("title"),
+                        rs.getString("content"),
+                        rs.getInt("likeCount"),
+                        rs.getInt("commentCount"),
+                        rs.getInt("imageCount"),
+                        rs.getString("updatedAt")
+                ), buildingIdx);
     }
 
 }
