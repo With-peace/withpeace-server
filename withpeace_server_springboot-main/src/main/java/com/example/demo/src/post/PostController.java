@@ -2,7 +2,6 @@ package com.example.demo.src.post;
 
 import com.example.demo.config.BaseException;
 import com.example.demo.config.BaseResponse;
-import com.example.demo.config.BaseResponseStatus;
 import com.example.demo.src.post.model.*;
 import com.example.demo.src.auth.*;
 import com.example.demo.utils.*;
@@ -316,7 +315,7 @@ public class PostController {
      */
     @ResponseBody
     @GetMapping("/notification")
-    public BaseResponse<GetNoticeListRes> getPost(@RequestBody Map<String, Long> userIdx) {
+    public BaseResponse<GetPostList> getNoticeList(@RequestBody Map<String, Long> userIdx) {
         try{
             // 유저인덱스 입력하지 않았을 때
             if (userIdx.get("userIdx") == null) {
@@ -330,7 +329,7 @@ public class PostController {
             if(first_accessToken != new_accessToken){
                 accessToken = new_accessToken;
             }
-            GetNoticeListRes getNoticeList = postProvider.getNoticeList(userIdx.get("userIdx"), accessToken);
+            GetPostList getNoticeList = postProvider.getNoticeList(userIdx.get("userIdx"), accessToken);
             return new BaseResponse<>(getNoticeList);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));

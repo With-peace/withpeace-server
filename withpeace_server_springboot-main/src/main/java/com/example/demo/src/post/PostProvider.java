@@ -1,10 +1,7 @@
 package com.example.demo.src.post;
 
 import com.example.demo.config.BaseException;
-import com.example.demo.config.BaseResponse;
 import com.example.demo.src.post.model.*;
-import com.example.demo.src.post.*;
-import com.example.demo.src.user.UserDao;
 import com.example.demo.utils.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -116,12 +113,12 @@ public class PostProvider {
     }
 
     /** 관리자 공지 리스트 조회 **/
-    public GetNoticeListRes getNoticeList(Long userIdx, String accessToken) throws BaseException {
+    public GetPostList getNoticeList(Long userIdx, String accessToken) throws BaseException {
 
         try{
-            List<GetNoticeList> getNoticeList = postDao.selectNoticeList(userIdx);
+            List<GetPostInfo> getNoticeList = postDao.selectNoticeList(userIdx);
 
-            GetNoticeListRes getNoticeListRes = new GetNoticeListRes(getNoticeList, accessToken);
+            GetPostList getNoticeListRes = new GetPostList(getNoticeList, accessToken);
 
             return getNoticeListRes;
         }

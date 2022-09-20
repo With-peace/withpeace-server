@@ -260,7 +260,7 @@ public class PostDao {
     }
 
     /** 관리자 공지 리스트 조회 **/
-    public List<GetNoticeList> selectNoticeList(Long userIdx){
+    public List<GetPostInfo> selectNoticeList(Long userIdx){
         String selectBuildingIdxQuery =
                 "select buildingIdx\n" +
                         "from User\n" +
@@ -290,7 +290,7 @@ public class PostDao {
                 "where P.userIdx=U.userIdx and P.type='notice' and P.status='ACTIVE'\n" +
                 "group by postIdx";
         return this.jdbcTemplate.query(selectNoticeListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
-                (rs,rowNum) -> new GetNoticeList(
+                (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
                         rs.getString("title"),
                         rs.getString("content"),

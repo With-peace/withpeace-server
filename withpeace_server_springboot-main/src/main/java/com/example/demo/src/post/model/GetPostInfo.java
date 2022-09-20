@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetNoticeList {
+public class GetPostInfo {
     private int postIdx;
     private String title;
     private String content;

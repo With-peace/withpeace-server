@@ -9,7 +9,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class GetNoticeListRes {
-    private List<GetNoticeList> noticeList;
+public class GetPostList {
+    private List<GetPostInfo> noticeList;
     private String accessToken;
 }
