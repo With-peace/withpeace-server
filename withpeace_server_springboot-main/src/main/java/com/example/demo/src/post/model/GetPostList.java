@@ -10,6 +10,6 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 public class GetPostList {
-    private List<GetPostInfo> noticeList;
+    private List<GetPostInfo> postList;
     private String accessToken;
 }

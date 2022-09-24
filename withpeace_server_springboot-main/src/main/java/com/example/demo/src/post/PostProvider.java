@@ -128,4 +128,20 @@ public class PostProvider {
         }
     }
 
+    /** 자유게시판 리스트 조회 **/
+    public GetPostList getGeneralList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            List<GetPostInfo> getGeneralList = postDao.selectGeneralList(userIdx);
+
+            GetPostList getGeneralListRes = new GetPostList(getGeneralList, accessToken);
+
+            return getGeneralListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }
