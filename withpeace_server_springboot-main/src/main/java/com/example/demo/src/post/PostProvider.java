@@ -144,4 +144,20 @@ public class PostProvider {
         }
     }
 
+    /** 정보게시판 리스트 조회 **/
+    public GetPostList getInformationList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            List<GetPostInfo> getInformationList = postDao.selectInformationList(userIdx);
+
+            GetPostList getInformationListRes = new GetPostList(getInformationList, accessToken);
+
+            return getInformationListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }
