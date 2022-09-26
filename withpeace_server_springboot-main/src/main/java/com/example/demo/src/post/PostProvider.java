@@ -160,4 +160,52 @@ public class PostProvider {
         }
     }
 
+    /** 장터게시판-나눔 리스트 조회 **/
+    public GetPostList getShareList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            List<GetPostInfo> getShareList = postDao.selectShareList(userIdx);
+
+            GetPostList getShareListRes = new GetPostList(getShareList, accessToken);
+
+            return getShareListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 장터게시판-공동구매 리스트 조회 **/
+    public GetPostList getGroupList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            List<GetPostInfo> getGroupList = postDao.selectGroupList(userIdx);
+
+            GetPostList getGroupListRes = new GetPostList(getGroupList, accessToken);
+
+            return getGroupListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 장터게시판-중고거래 리스트 조회 **/
+    public GetPostList getSecondhandList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            List<GetPostInfo> getSecondhandList = postDao.selectSecondhandList(userIdx);
+
+            GetPostList getSecondhandListRes = new GetPostList(getSecondhandList, accessToken);
+
+            return getSecondhandListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

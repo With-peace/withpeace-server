@@ -394,4 +394,91 @@ public class PostController {
         }
     }
 
+
+    /**
+     * 장터게시판-나눔 리스트 조회 API
+     * [GET] /posts/share
+     * @return BaseResponse<GetPostList>
+     */
+    @ResponseBody
+    @GetMapping("/share")
+    public BaseResponse<GetPostList> getShareList(@RequestBody Map<String, Long> userIdx) {
+        try{
+            // 유저인덱스 입력하지 않았을 때
+            if (userIdx.get("userIdx") == null) {
+                return new BaseResponse<>(USERS_EMPTY_USER_ID);
+            }
+
+            String first_accessToken = jwtService.getAccessToken();
+            // 토큰 검증
+            String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+            String accessToken = null;
+            if(first_accessToken != new_accessToken){
+                accessToken = new_accessToken;
+            }
+            GetPostList getShareList = postProvider.getShareList(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(getShareList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
+     * 장터게시판-공동구매 리스트 조회 API
+     * [GET] /posts/group
+     * @return BaseResponse<GetPostList>
+     */
+    @ResponseBody
+    @GetMapping("/group")
+    public BaseResponse<GetPostList> getGroupList(@RequestBody Map<String, Long> userIdx) {
+        try{
+            // 유저인덱스 입력하지 않았을 때
+            if (userIdx.get("userIdx") == null) {
+                return new BaseResponse<>(USERS_EMPTY_USER_ID);
+            }
+
+            String first_accessToken = jwtService.getAccessToken();
+            // 토큰 검증
+            String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+            String accessToken = null;
+            if(first_accessToken != new_accessToken){
+                accessToken = new_accessToken;
+            }
+            GetPostList getGroupList = postProvider.getGroupList(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(getGroupList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
+     * 장터게시판-중고거래 리스트 조회 API
+     * [GET] /posts/secondhand
+     * @return BaseResponse<GetPostList>
+     */
+    @ResponseBody
+    @GetMapping("/secondhand")
+    public BaseResponse<GetPostList> getSecondhandList(@RequestBody Map<String, Long> userIdx) {
+        try{
+            // 유저인덱스 입력하지 않았을 때
+            if (userIdx.get("userIdx") == null) {
+                return new BaseResponse<>(USERS_EMPTY_USER_ID);
+            }
+
+            String first_accessToken = jwtService.getAccessToken();
+            // 토큰 검증
+            String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+            String accessToken = null;
+            if(first_accessToken != new_accessToken){
+                accessToken = new_accessToken;
+            }
+            GetPostList getSecondhandList = postProvider.getSecondhandList(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(getSecondhandList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 }
