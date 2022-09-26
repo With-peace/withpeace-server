@@ -189,28 +189,28 @@ public class PostDao {
     /** 게시글 조회 **/
     public GetPostRes selectPost(Long userIdx, int postIdx, String accessToken){
         String selectPostQuery =
-                "select U.userIdx, U.profileImgUrl,\n" +
+                "select U.userIdx, U.profileImgUrl, \n" +
                 "       If(P.isAnonymous = 'Y', '익명', U.name) as name,\n" +
                 "       P.postIdx, P.title, P.content,\n" +
                 "       If(likeCount is null, 0, likeCount) as likeCount,\n" +
                 "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
+                "       IF(exists(select userIdx from PostLike where userIdx=? and postIdx=?)=1, 'Y', 'N') as likeOrNot,\n" +
+                "       IF(exists(select userIdx from PostSave where userIdx=? and postIdx=?)=1, 'Y', 'N') as saveOrNot,\n" +
                 "       case\n" +
                 "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
                 "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
                 "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                "        end as updatedAt,\n" +
-                "       IF(PL.userIdx = ?, 'Y', 'N') as likeOrNot,\n" +
-                "       IF(PS.userIdx = ?, 'Y', 'N') as saveOrNot\n" +
+                "        end as updatedAt\n" +
                 "from Post as P\n" +
                 "    left join User U on P.userIdx = U.userIdx\n" +
-                "    left join(select postIdx, userIdx, postLikeIdx, count(postLikeIdx)as likeCount from PostLike)\n" +
+                "    left join(select postIdx, userIdx, count(postLikeIdx)as likeCount from PostLike group by postIdx)\n" +
                 "        PL on PL.postIdx = P.postIdx\n" +
-                "    left join(select postIdx, userIdx, postSaveIdx from PostSave)\n" +
+                "    left join(select postIdx, userIdx, postSaveIdx from PostSave group by postIdx)\n" +
                 "        PS on PS.postIdx = P.postIdx\n" +
-                "    left join(select postIdx, commentIdx, count(commentIdx)as commentCount from Comment)\n" +
+                "    left join(select postIdx, commentIdx, count(commentIdx)as commentCount from Comment group by postIdx)\n" +
                 "        C on C.postIdx = P.postIdx\n" +
                 "where P.postIdx = ? and P.status = 'ACTIVE'";
-        Object[] selectPostParam = new Object[] {userIdx, userIdx, postIdx};
+        Object[] selectPostParam = new Object[] {userIdx, postIdx, userIdx, postIdx, postIdx};
         return this.jdbcTemplate.queryForObject(selectPostQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostRes(
                         rs.getInt("userIdx"),
