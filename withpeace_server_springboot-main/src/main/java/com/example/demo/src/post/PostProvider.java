@@ -224,4 +224,20 @@ public class PostProvider {
         }
     }
 
+    /** 내가 스크랩한 글 조회 **/
+    public GetPostList getMysaveList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            List<GetPostInfo> getMysaveList = postDao.selectMysaveList(userIdx);
+
+            GetPostList getMysaveListRes = new GetPostList(getMysaveList, accessToken);
+
+            return getMysaveListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

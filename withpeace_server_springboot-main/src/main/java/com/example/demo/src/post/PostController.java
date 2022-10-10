@@ -510,4 +510,33 @@ public class PostController {
         }
     }
 
+
+    /**
+     * 내가 스크랩한 글 조회 API
+     * [GET] /posts/mysaves
+     * @return BaseResponse<GetPostList>
+     */
+    @ResponseBody
+    @GetMapping("/mysaves")
+    public BaseResponse<GetPostList> getMysaveList(@RequestBody Map<String, Long> userIdx) {
+        try{
+            // 유저인덱스 입력하지 않았을 때
+            if (userIdx.get("userIdx") == null) {
+                return new BaseResponse<>(USERS_EMPTY_USER_ID);
+            }
+
+            String first_accessToken = jwtService.getAccessToken();
+            // 토큰 검증
+            String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+            String accessToken = null;
+            if(first_accessToken != new_accessToken){
+                accessToken = new_accessToken;
+            }
+            GetPostList getMysaveList = postProvider.getMysaveList(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(getMysaveList);
+        } catch(BaseException exception){
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 }

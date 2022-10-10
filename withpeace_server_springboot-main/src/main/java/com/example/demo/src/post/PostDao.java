@@ -546,4 +546,39 @@ public class PostDao {
                 ), userIdx);
     }
 
+    /** 내가 스크랩한 글 조회 **/
+    public List<GetPostInfo> selectMysaveList(Long userIdx){
+        String selectMysaveListQuery =
+                "select P.postIdx, P.title, P.content,\n" +
+                "       IF(likeCount is null, 0, likeCount) as likeCount,\n" +
+                "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
+                "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
+                "       case\n" +
+                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
+                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as updatedAt\n" +
+                "from Post as P\n" +
+                "    left join User U on P.userIdx=U.userIdx\n" +
+                "    left join PostSave PS on P.postIdx = PS.postIdx\n" +
+                "    left join(select postIdx, userIdx, count(postLikeIdx)as likeCount from PostLike group by postIdx)\n" +
+                "        PL on P.postIdx = PL.postIdx\n" +
+                "    left join(select postIdx, count(commentIdx)as commentCount from Comment group by postIdx)\n" +
+                "        C on C.postIdx = P.postIdx\n" +
+                "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
+                "        PI on PI.postIdx = P.postIdx\n" +
+                "where PS.userIdx=? and P.status='ACTIVE'\n" +
+                "group by postIdx";
+        return this.jdbcTemplate.query(selectMysaveListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> new GetPostInfo(
+                        rs.getInt("postIdx"),
+                        rs.getString("title"),
+                        rs.getString("content"),
+                        rs.getInt("likeCount"),
+                        rs.getInt("commentCount"),
+                        rs.getInt("imageCount"),
+                        rs.getString("updatedAt")
+                ), userIdx);
+    }
+
 }
