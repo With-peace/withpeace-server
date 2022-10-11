@@ -74,9 +74,18 @@ dependencies {
     // https://mvnrepository.com/artifact/commons-io/commons-io
     implementation group: 'commons-io', name: 'commons-io', version: '1.4'
 
+//    implementation "com.amazonaws:aws-java-sdk-s3:${awsJavaSdkVersion}"
 
+    // https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-s3
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-s3', version: '1.12.261'
+
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-aws', version: '2.2.5.RELEASE'
+
+    // https://mvnrepository.com/artifact/com.amazonaws/aws-java-sdk-bom
+    implementation group: 'com.amazonaws', name: 'aws-java-sdk-bom', version: '1.11.923', ext: 'pom'
 
 }
+
 
 test {
     useJUnitPlatform()

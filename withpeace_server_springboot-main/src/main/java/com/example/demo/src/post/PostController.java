@@ -27,14 +27,16 @@ public class PostController {
     private final JwtService jwtService;
     private final AuthDao authDao;
     private final TokenVerify tokenVerify;
+    private final S3Service s3Service;
 
     @Autowired
-    public PostController(PostProvider postProvider, PostService postService, JwtService jwtService, AuthDao authDao, TokenVerify tokenVerify) {
+    public PostController(PostProvider postProvider, PostService postService, JwtService jwtService, AuthDao authDao, TokenVerify tokenVerify, S3Service s3Service) {
         this.postProvider = postProvider;
         this.postService = postService;
         this.jwtService = jwtService;
         this.authDao = authDao;
         this.tokenVerify = tokenVerify;
+        this.s3Service = s3Service;
     }
 
     /**
@@ -45,7 +47,8 @@ public class PostController {
      */
     @ResponseBody
     @PostMapping("")
-    public BaseResponse<PostPostsRes> createPost(@RequestPart PostPostsReq postPostsReq, List<MultipartFile> postImage
+    public BaseResponse<PostPostsRes> createPost(@RequestPart("content") PostPostsReq postPostsReq,
+                                                 @RequestPart("imgUrl") List<MultipartFile> postImage
                                                  ) throws BaseException {
         // 유저인덱스 입력하지 않았을 때
         if (postPostsReq.getUserIdx() == null) {
@@ -83,9 +86,12 @@ public class PostController {
             return new BaseResponse<>(POST_POSTS_EMPTY_ISANONYMOUS);
         }
 
+        List<String> imgPaths = s3Service.upload(postImage);
+        System.out.println("IMG 경로들 : " + imgPaths);
+
         try {
 
-            PostPostsRes postPostsRes = postService.createPost(postImage, postPostsReq, accessToken);
+            PostPostsRes postPostsRes = postService.createPost(imgPaths, postPostsReq, accessToken);
             return new BaseResponse<>(postPostsRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));

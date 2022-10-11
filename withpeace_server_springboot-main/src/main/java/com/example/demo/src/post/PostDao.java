@@ -40,7 +40,7 @@ public class PostDao {
     }
 
     /** 게시글 생성 - PostImage **/
-    public void insertPostImage(int postIdx, String postImageUrl){
+    public int insertPostImage(int postIdx, String postImageUrl){
         // Post - PostImage
         // postIdx, postImageUrl
         String insertPostImageQuery = "insert into PostImage (postIdx, postImageUrl) VALUES (?,?)";
@@ -48,7 +48,7 @@ public class PostDao {
 
         this.jdbcTemplate.update(insertPostImageQuery, insertPostImageParams);
         String lastInsertIdQuery = "select last_insert_id()";
-        System.out.println(this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class));
+        return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
 
     }
 
