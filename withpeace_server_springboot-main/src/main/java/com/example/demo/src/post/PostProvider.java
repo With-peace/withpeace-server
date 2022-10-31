@@ -240,4 +240,23 @@ public class PostProvider {
         }
     }
 
+    /** 내가 좋아요한 글 조회 **/
+    public GetPostList getMylikeList(Long userIdx, String accessToken) throws BaseException {
+
+        try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
+            List<GetPostInfo> getMysaveList = postDao.selectMylikeList(userIdx);
+
+            GetPostList getMylikeListRes = new GetPostList(userIdx, userLevel, getMysaveList, accessToken);
+
+            return getMylikeListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }
