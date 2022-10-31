@@ -5,6 +5,7 @@ import com.example.demo.config.BaseResponseStatus;
 import com.example.demo.config.BaseResponse;
 import com.example.demo.src.auth.model.*;
 import com.example.demo.src.auth.model.SendSmsResponseDto;
+import com.example.demo.src.post.PostProvider;
 import com.example.demo.src.user.model.PostUserResidentReq;
 import com.example.demo.src.user.model.PostUserResidentRes;
 import com.example.demo.utils.*;
@@ -39,11 +40,14 @@ public class AuthController {
     @Autowired
     private final JwtService jwtService;
 
+    private final PostProvider postProvider;
 
-    public AuthController(AuthProvider authProvider, AuthService authService, JwtService jwtService){
+
+    public AuthController(AuthProvider authProvider, AuthService authService, JwtService jwtService, PostProvider postProvider){
         this.authProvider = authProvider;
         this.authService = authService;
         this.jwtService = jwtService;
+        this.postProvider = postProvider;
     }
 
     @ResponseBody
@@ -124,15 +128,20 @@ public class AuthController {
             // 다움단계 - Login or Signup
             String nextLevel;
 
+            // 사용자의 userLevle 체크
+            String userLevel;
+
             // id 중복확인
             if(authProvider.checkUserIdx(kakaoUserInfo.getId()) == 1){
                 // 로그인
                 nextLevel = "Login";
+                userLevel = postProvider.getUserLevel(kakaoUserInfo.getId());
             } else{
                 nextLevel = "Signup";
-
+                userLevel = "NOT_EXIST";
             }
-            KakaoCallbackRes kakaoCallbackRes = new KakaoCallbackRes(kakaoUserInfo.getId(), kakaoUserInfo.getNickname(), accessToken, refreshToken, nextLevel);
+
+            KakaoCallbackRes kakaoCallbackRes = new KakaoCallbackRes(kakaoUserInfo.getId(), userLevel, kakaoUserInfo.getNickname(), accessToken, refreshToken, nextLevel);
             return new BaseResponse<>(kakaoCallbackRes);
         } catch(BaseException exception){
             return new BaseResponse<>((exception.getStatus()));
@@ -238,10 +247,10 @@ public class AuthController {
      */
     @ResponseBody
     @PostMapping("/kakao/login")
-    public BaseResponse<PostLoginRes> kakaoLogin(@RequestBody KakaoCallbackRes kakaoCallbackRes) {
+    public BaseResponse<PostLoginRes> kakaoLogin(@RequestBody Long userIdx) {
         try{
 
-            PostLoginRes postLoginRes = authService.KakaoLogIn(kakaoCallbackRes.getUserIdx());
+            PostLoginRes postLoginRes = authService.KakaoLogIn(userIdx);
             return new BaseResponse<>(postLoginRes);
 
         } catch(BaseException exception){

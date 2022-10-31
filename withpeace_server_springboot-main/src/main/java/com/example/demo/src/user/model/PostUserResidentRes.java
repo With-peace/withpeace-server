@@ -11,6 +11,7 @@ import java.lang.Long;
 @AllArgsConstructor
 public class PostUserResidentRes {
     private Long userIdx;
+    private String userLevel;
     private String accessToken;
     private String refreshToken;
 }

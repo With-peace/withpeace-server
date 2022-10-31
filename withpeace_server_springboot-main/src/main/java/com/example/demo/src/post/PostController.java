@@ -86,8 +86,12 @@ public class PostController {
             return new BaseResponse<>(POST_POSTS_EMPTY_ISANONYMOUS);
         }
 
-        List<String> imgPaths = s3Service.upload(postImage);
-        System.out.println("IMG 경로들 : " + imgPaths);
+        List<String> imgPaths = null;
+
+        if(postImage.size() > 1){
+            imgPaths = s3Service.upload(postImage);
+            System.out.println("IMG 경로들 : " + imgPaths);
+        }
 
         try {
 
@@ -176,7 +180,7 @@ public class PostController {
 
     /**
      * 게시글 좋아요 취소 API
-     * [POST] /posts/deleteLike/:postLikeIdx
+     * [DELETE] /posts/deleteLike/:postLikeIdx
      * @return BaseResponse<PostLikeRes>
      */
     @ResponseBody

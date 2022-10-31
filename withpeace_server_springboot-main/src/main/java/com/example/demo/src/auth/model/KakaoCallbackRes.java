@@ -11,6 +11,7 @@ import java.math.BigInteger;
 @AllArgsConstructor
 public class KakaoCallbackRes {
     private Long userIdx;
+    private String userLevel;
     private String name;
     private String accessToken;
     private String refreshToken;

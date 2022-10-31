@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class PostLikeRes {
+    private Long userIdx;
+    private String userLevel;
     private int postLikeIdx;
     private String accessToken;
 }

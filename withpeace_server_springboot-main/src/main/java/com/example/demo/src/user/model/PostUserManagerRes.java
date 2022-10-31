@@ -9,6 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class PostUserManagerRes {
     private Long userIdx;
+    private String userLevel;
     private int buildingIdx;
     private String accessToken;
     private String refreshToken;

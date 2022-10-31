@@ -2,6 +2,7 @@ package com.example.demo.src.auth;
 
 import com.example.demo.config.BaseException;
 import com.example.demo.src.auth.model.*;
+import com.example.demo.src.post.PostProvider;
 import com.example.demo.src.user.*;
 import com.example.demo.utils.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -60,16 +61,18 @@ public class AuthService {
     private final AuthProvider authProvider;
     private final JwtService jwtService;
     private final ApplicationNaverSENS applicationNaverSENS;
+    private final PostProvider postProvider;
 
 
     @Autowired
-    public AuthService(UserProvider userProvider, UserDao userDao, AuthDao authDao, AuthProvider authProvider, JwtService jwtService, ApplicationNaverSENS applicationNaverSENS) {
+    public AuthService(UserProvider userProvider, UserDao userDao, AuthDao authDao, AuthProvider authProvider, JwtService jwtService, ApplicationNaverSENS applicationNaverSENS, PostProvider postProvider) {
         this.userDao = userDao;
         this.userProvider = userProvider;
         this.authDao = authDao;
         this.authProvider = authProvider;
         this.jwtService = jwtService;
         this.applicationNaverSENS = applicationNaverSENS;
+        this.postProvider = postProvider;
 
     }
 
@@ -278,6 +281,9 @@ public class AuthService {
         }
         System.out.println(inviteCode); //
 
+        // 사용자의 userLevle
+        String userLevel = "Manager";
+
         try{
             // Post - Building
             // name, address, inviteCode
@@ -297,7 +303,7 @@ public class AuthService {
             userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
             // 추가된 유저요청인덱스, 건물 인덱스, accessToken, refreshToken 반환
-            return new PostKakaoUserManagerRes(userIdx, buildingIdx, accessToken, refreshToken);
+            return new PostKakaoUserManagerRes(userIdx, userLevel, buildingIdx, accessToken, refreshToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -312,6 +318,9 @@ public class AuthService {
         if(userDao.isExistInviteCode(postKakaoUserResidentReq.getInviteCode()) == 0){
             throw new BaseException(INVALID_INVITECODE);
         }
+
+        // 사용자의 userLevle
+        String userLevel = "Resident";
 
         try{
             // Get - Building
@@ -331,7 +340,7 @@ public class AuthService {
             userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
             // 추가된 유저인덱스, jwt토큰 반환
-            return new PostKakaoUserResidentRes(userIdx, accessToken, refreshToken);
+            return new PostKakaoUserResidentRes(userIdx, userLevel, accessToken, refreshToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -350,7 +359,10 @@ public class AuthService {
             // refreshToken
             userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
-            return new PostLoginRes(userIdx, accessToken, refreshToken);
+            // 사용자의 userLevle 체크
+            String userLevel = postProvider.getUserLevel(userIdx);
+
+            return new PostLoginRes(userIdx, userLevel, accessToken, refreshToken);
         }
         catch (Exception exception){
             throw new BaseException(FAILED_TO_KAKAOLOGIN);
@@ -371,6 +383,9 @@ public class AuthService {
             throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
         }
 
+        // 사용자의 userLevle 체크
+        String userLevel = postProvider.getUserLevel(userInfo.getUserIdx());
+
         // 암호화 준 비밀번호를 확인
         if(userInfo.getPassword().equals(encryptPwd)){
             // 비교를 해주고, 이상이 없다면 jwt 발급
@@ -384,7 +399,7 @@ public class AuthService {
             // refreshToken
             userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
-            return new PostLoginRes(userIdx, accessToken, refreshToken);
+            return new PostLoginRes(userIdx, userLevel, accessToken, refreshToken);
         }
         else
             throw new BaseException(FAILED_TO_LOGIN);

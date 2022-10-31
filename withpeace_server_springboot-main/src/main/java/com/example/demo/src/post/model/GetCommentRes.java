@@ -13,5 +13,5 @@ public class GetCommentRes {
     private String name;
     private String profileImgUrl;
     private String content;
-    private String updatedAt;
+    private String createdAt;
 }

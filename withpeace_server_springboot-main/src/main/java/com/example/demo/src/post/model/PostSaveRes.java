@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class PostSaveRes {
+    private Long userIdx;
+    private String userLevel;
     private int postSaveIdx;
     private String accessToken;
 }

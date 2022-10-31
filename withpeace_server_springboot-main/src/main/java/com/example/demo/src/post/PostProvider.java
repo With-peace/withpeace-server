@@ -26,6 +26,20 @@ public class PostProvider {
         this.jwtService = jwtService;
     }
 
+    /** 사용자의 userLevel 조회 **/
+    public String getUserLevel(Long userIdx) throws BaseException {
+
+        try{
+            String getUserLevel = postDao.selectUserLevel(userIdx);
+
+            return getUserLevel;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
     /** 게시글 존재여부 확인 **/
     public int checkPost(Integer postIdx) throws BaseException{
         try{
@@ -102,7 +116,10 @@ public class PostProvider {
     public GetPostRes getPost(Long userIdx, int postIdx, String accessToken) throws BaseException {
 
         try{
-            GetPostRes getPost = postDao.selectPost(userIdx, postIdx, accessToken);
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
+            GetPostRes getPost = postDao.selectPost(userIdx, userLevel, postIdx, accessToken);
 
             return getPost;
         }
@@ -116,9 +133,12 @@ public class PostProvider {
     public GetPostList getNoticeList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getNoticeList = postDao.selectNoticeList(userIdx);
 
-            GetPostList getNoticeListRes = new GetPostList(getNoticeList, accessToken);
+            GetPostList getNoticeListRes = new GetPostList(userIdx, userLevel, getNoticeList, accessToken);
 
             return getNoticeListRes;
         }
@@ -132,9 +152,12 @@ public class PostProvider {
     public GetPostList getGeneralList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getGeneralList = postDao.selectGeneralList(userIdx);
 
-            GetPostList getGeneralListRes = new GetPostList(getGeneralList, accessToken);
+            GetPostList getGeneralListRes = new GetPostList(userIdx, userLevel, getGeneralList, accessToken);
 
             return getGeneralListRes;
         }
@@ -148,9 +171,12 @@ public class PostProvider {
     public GetPostList getInformationList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getInformationList = postDao.selectInformationList(userIdx);
 
-            GetPostList getInformationListRes = new GetPostList(getInformationList, accessToken);
+            GetPostList getInformationListRes = new GetPostList(userIdx, userLevel, getInformationList, accessToken);
 
             return getInformationListRes;
         }
@@ -164,9 +190,12 @@ public class PostProvider {
     public GetPostList getShareList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getShareList = postDao.selectShareList(userIdx);
 
-            GetPostList getShareListRes = new GetPostList(getShareList, accessToken);
+            GetPostList getShareListRes = new GetPostList(userIdx, userLevel, getShareList, accessToken);
 
             return getShareListRes;
         }
@@ -180,9 +209,12 @@ public class PostProvider {
     public GetPostList getGroupList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getGroupList = postDao.selectGroupList(userIdx);
 
-            GetPostList getGroupListRes = new GetPostList(getGroupList, accessToken);
+            GetPostList getGroupListRes = new GetPostList(userIdx, userLevel, getGroupList, accessToken);
 
             return getGroupListRes;
         }
@@ -196,9 +228,12 @@ public class PostProvider {
     public GetPostList getSecondhandList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getSecondhandList = postDao.selectSecondhandList(userIdx);
 
-            GetPostList getSecondhandListRes = new GetPostList(getSecondhandList, accessToken);
+            GetPostList getSecondhandListRes = new GetPostList(userIdx, userLevel, getSecondhandList, accessToken);
 
             return getSecondhandListRes;
         }
@@ -212,9 +247,12 @@ public class PostProvider {
     public GetPostList getMypostList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getMypostList = postDao.selectMypostList(userIdx);
 
-            GetPostList getMypostListRes = new GetPostList(getMypostList, accessToken);
+            GetPostList getMypostListRes = new GetPostList(userIdx, userLevel, getMypostList, accessToken);
 
             return getMypostListRes;
         }
@@ -228,9 +266,12 @@ public class PostProvider {
     public GetPostList getMysaveList(Long userIdx, String accessToken) throws BaseException {
 
         try{
+            // 사용자의 userLevle 체크
+            String userLevel = getUserLevel(userIdx);
+
             List<GetPostInfo> getMysaveList = postDao.selectMysaveList(userIdx);
 
-            GetPostList getMysaveListRes = new GetPostList(getMysaveList, accessToken);
+            GetPostList getMysaveListRes = new GetPostList(userIdx, userLevel, getMysaveList, accessToken);
 
             return getMysaveListRes;
         }

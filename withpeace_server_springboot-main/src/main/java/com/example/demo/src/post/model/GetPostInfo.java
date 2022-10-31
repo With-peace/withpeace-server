@@ -16,5 +16,5 @@ public class GetPostInfo {
     private int likeCount;
     private int commentCount;
     private int imageCount;
-    private String updatedAt;
+    private String createdAt;
 }

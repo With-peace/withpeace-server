@@ -87,6 +87,9 @@ public class UserService {
         }
         System.out.println(inviteCode); //
 
+        // 사용자의 userLevle
+        String userLevel = "Manager";
+
         try{
             // Post - Building
             // name, address, inviteCode
@@ -106,7 +109,7 @@ public class UserService {
             userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
             // 추가된 유저인덱스, 건물 인덱스 반환
-            return new PostUserManagerRes(userIdx, buildingIdx, accessToken, refreshToken);
+            return new PostUserManagerRes(userIdx, userLevel, buildingIdx, accessToken, refreshToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
@@ -135,6 +138,9 @@ public class UserService {
             throw new BaseException(INVALID_INVITECODE);
         }
 
+        // 사용자의 userLevle
+        String userLevel = "Resident";
+
         try{
             // Get - Building
             // buildingIdx
@@ -154,7 +160,7 @@ public class UserService {
             userDao.SaveRefeshTokenUserManager(userIdx, refreshToken);
 
             // 추가된 유저요청인덱스, 건물 인덱스 반환
-            return new PostUserResidentRes(userIdx, accessToken, refreshToken);
+            return new PostUserResidentRes(userIdx, userLevel, accessToken, refreshToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
