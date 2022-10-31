@@ -187,9 +187,9 @@ public class PostDao {
     }
 
     /** 게시글 조회 **/
-    public GetPostRes selectPost(Long userIdx, int postIdx, String accessToken){
+    public GetPostRes selectPost(Long userIdx, String userLevel, int postIdx, String accessToken){
         String selectPostQuery =
-                "select U.userIdx, U.profileImgUrl, \n" +
+                "select U.userIdx as postUserIdx, U.profileImgUrl, \n" +
                 "       If(P.isAnonymous = 'Y', '익명', U.name) as name,\n" +
                 "       P.postIdx, P.title, P.content,\n" +
                 "       If(likeCount is null, 0, likeCount) as likeCount,\n" +
@@ -197,10 +197,10 @@ public class PostDao {
                 "       IF(exists(select userIdx from PostLike where userIdx=? and postIdx=?)=1, 'Y', 'N') as likeOrNot,\n" +
                 "       IF(exists(select userIdx from PostSave where userIdx=? and postIdx=?)=1, 'Y', 'N') as saveOrNot,\n" +
                 "       case\n" +
-                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                "        end as updatedAt\n" +
+                "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as createdAt\n" +
                 "from Post as P\n" +
                 "    left join User U on P.userIdx = U.userIdx\n" +
                 "    left join(select postIdx, userIdx, count(postLikeIdx)as likeCount from PostLike group by postIdx)\n" +
@@ -213,7 +213,9 @@ public class PostDao {
         Object[] selectPostParam = new Object[] {userIdx, postIdx, userIdx, postIdx, postIdx};
         return this.jdbcTemplate.queryForObject(selectPostQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostRes(
-                        rs.getInt("userIdx"),
+                        userIdx, // 현재 사용자
+                        userLevel,
+                        rs.getLong("postUserIdx"), // 게시글 작성자
                         rs.getString("profileImgUrl"),
                         rs.getString("name"),
                         rs.getString("title"),
@@ -230,7 +232,7 @@ public class PostDao {
                         ),
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
-                        rs.getString("updatedAt"),
+                        rs.getString("createdAt"),
                         rs.getString("likeOrNot"),
                         rs.getString("saveOrNot"),
                         getCommentRes = this.jdbcTemplate.query(
@@ -238,10 +240,10 @@ public class PostDao {
                                     "       If(C.isAnonymous = 'Y', '익명', U.name) as name,\n" +
                                     "       U.profileImgUrl, C.content,\n" +
                                     "       case\n" +
-                                    "        when timestampdiff(day , C.updatedAt, current_timestamp) < 365\n" +
-                                    "        then date_format(C.updatedAt, '%m/%d %h:%i')\n" +
-                                    "        else date_format(C.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                                    "        end as updatedAt\n" +
+                                    "        when timestampdiff(day , C.createdAt, current_timestamp) < 365\n" +
+                                    "        then date_format(C.createdAt, '%m/%d %h:%i')\n" +
+                                    "        else date_format(C.createdAt, '%Y/%m/%d %h:%i')\n" +
+                                    "        end as createdAt\n" +
                                     "FROM Comment as C\n" +
                                     "    left join User U on C.userIdx = U.userIdx\n" +
                                     "    left join Post P on C.postIdx = P.postIdx\n" +
@@ -252,7 +254,7 @@ public class PostDao {
                                         rc.getString("name"),
                                         rc.getString("profileImgUrl"),
                                         rc.getString("content"),
-                                        rc.getString("updatedAt")
+                                        rc.getString("createdAt")
                                 ), rs.getInt("postIdx")
                         ),
                         accessToken
@@ -274,10 +276,10 @@ public class PostDao {
                 "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                 "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                 "       case\n" +
-                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                "        end as updatedAt\n" +
+                "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as createdAt\n" +
                 "from Post as P\n" +
                 "    left join (select userIdx, buildingIdx from User where userLevel='Manager')\n" +
                 "        U on U.buildingIdx=?\n" +
@@ -288,7 +290,8 @@ public class PostDao {
                 "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                 "        PI on PI.postIdx = P.postIdx\n" +
                 "where P.userIdx=U.userIdx and P.type='notice' and P.status='ACTIVE'\n" +
-                "group by postIdx";
+                "group by postIdx\n" +
+                "order by createdAt desc";
         return this.jdbcTemplate.query(selectNoticeListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
@@ -297,7 +300,7 @@ public class PostDao {
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
                         rs.getInt("imageCount"),
-                        rs.getString("updatedAt")
+                        rs.getString("createdAt")
                 ), buildingIdx);
     }
 
@@ -316,10 +319,10 @@ public class PostDao {
                 "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                 "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                 "       case\n" +
-                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                "        end as updatedAt\n" +
+                "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as createdAt\n" +
                 "from Post as P\n" +
                 "    left join (select userIdx, buildingIdx from User)\n" +
                 "        U on U.buildingIdx=?\n" +
@@ -330,7 +333,8 @@ public class PostDao {
                 "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                 "        PI on PI.postIdx = P.postIdx\n" +
                 "where P.userIdx=U.userIdx and P.type='general' and P.status='ACTIVE'\n" +
-                "group by postIdx";
+                "group by postIdx\n" +
+                "order by createdAt desc";
         return this.jdbcTemplate.query(selectNoticeListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
@@ -339,7 +343,7 @@ public class PostDao {
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
                         rs.getInt("imageCount"),
-                        rs.getString("updatedAt")
+                        rs.getString("createdAt")
                 ), buildingIdx);
     }
 
@@ -358,10 +362,10 @@ public class PostDao {
                         "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                         "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                         "       case\n" +
-                        "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                        "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                        "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                        "        end as updatedAt\n" +
+                        "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                        "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                        "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                        "        end as createdAt\n" +
                         "from Post as P\n" +
                         "    left join (select userIdx, buildingIdx from User)\n" +
                         "        U on U.buildingIdx=?\n" +
@@ -372,7 +376,8 @@ public class PostDao {
                         "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                         "        PI on PI.postIdx = P.postIdx\n" +
                         "where P.userIdx=U.userIdx and P.type='information' and P.status='ACTIVE'\n" +
-                        "group by postIdx";
+                        "group by postIdx\n" +
+                        "order by createdAt desc";
         return this.jdbcTemplate.query(selectNoticeListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
@@ -381,7 +386,7 @@ public class PostDao {
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
                         rs.getInt("imageCount"),
-                        rs.getString("updatedAt")
+                        rs.getString("createdAt")
                 ), buildingIdx);
     }
 
@@ -400,10 +405,10 @@ public class PostDao {
                         "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                         "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                         "       case\n" +
-                        "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                        "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                        "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                        "        end as updatedAt\n" +
+                        "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                        "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                        "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                        "        end as createdAt\n" +
                         "from Post as P\n" +
                         "    left join (select userIdx, buildingIdx from User)\n" +
                         "        U on U.buildingIdx=?\n" +
@@ -414,7 +419,8 @@ public class PostDao {
                         "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                         "        PI on PI.postIdx = P.postIdx\n" +
                         "where P.userIdx=U.userIdx and P.type='share' and P.status='ACTIVE'\n" +
-                        "group by postIdx";
+                        "group by postIdx\n" +
+                        "order by createdAt desc";
         return this.jdbcTemplate.query(selectNoticeListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
@@ -423,7 +429,7 @@ public class PostDao {
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
                         rs.getInt("imageCount"),
-                        rs.getString("updatedAt")
+                        rs.getString("createdAt")
                 ), buildingIdx);
     }
 
@@ -442,10 +448,10 @@ public class PostDao {
                         "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                         "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                         "       case\n" +
-                        "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                        "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                        "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                        "        end as updatedAt\n" +
+                        "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                        "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                        "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                        "        end as createdAt\n" +
                         "from Post as P\n" +
                         "    left join (select userIdx, buildingIdx from User)\n" +
                         "        U on U.buildingIdx=?\n" +
@@ -456,7 +462,8 @@ public class PostDao {
                         "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                         "        PI on PI.postIdx = P.postIdx\n" +
                         "where P.userIdx=U.userIdx and P.type='group' and P.status='ACTIVE'\n" +
-                        "group by postIdx";
+                        "group by postIdx\n" +
+                        "order by createdAt desc";
         return this.jdbcTemplate.query(selectNoticeListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
@@ -465,7 +472,7 @@ public class PostDao {
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
                         rs.getInt("imageCount"),
-                        rs.getString("updatedAt")
+                        rs.getString("createdAt")
                 ), buildingIdx);
     }
 
@@ -484,10 +491,10 @@ public class PostDao {
                         "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                         "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                         "       case\n" +
-                        "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                        "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                        "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                        "        end as updatedAt\n" +
+                        "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                        "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                        "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                        "        end as createdAt\n" +
                         "from Post as P\n" +
                         "    left join (select userIdx, buildingIdx from User)\n" +
                         "        U on U.buildingIdx=?\n" +
@@ -498,7 +505,8 @@ public class PostDao {
                         "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                         "        PI on PI.postIdx = P.postIdx\n" +
                         "where P.userIdx=U.userIdx and P.type='secondhand' and P.status='ACTIVE'\n" +
-                        "group by postIdx";
+                        "group by postIdx\n" +
+                        "order by createdAt desc";
         return this.jdbcTemplate.query(selectSecondhandListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
@@ -507,7 +515,7 @@ public class PostDao {
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
                         rs.getInt("imageCount"),
-                        rs.getString("updatedAt")
+                        rs.getString("createdAt")
                 ), buildingIdx);
     }
 
@@ -519,10 +527,10 @@ public class PostDao {
                 "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                 "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                 "       case\n" +
-                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                "        end as updatedAt\n" +
+                "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as createdAt\n" +
                 "from Post as P\n" +
                 "    left join (select userIdx, buildingIdx from User)\n" +
                 "        U on U.userIdx=?\n" +
@@ -533,7 +541,8 @@ public class PostDao {
                 "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                 "        PI on PI.postIdx = P.postIdx\n" +
                 "where P.userIdx=U.userIdx and P.status='ACTIVE'\n" +
-                "group by postIdx";
+                "group by postIdx\n" +
+                "order by createdAt desc";
         return this.jdbcTemplate.query(selectMypostListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
@@ -542,7 +551,7 @@ public class PostDao {
                         rs.getInt("likeCount"),
                         rs.getInt("commentCount"),
                         rs.getInt("imageCount"),
-                        rs.getString("updatedAt")
+                        rs.getString("createdAt")
                 ), userIdx);
     }
 
@@ -554,10 +563,10 @@ public class PostDao {
                 "       If(commentCount is null, 0, commentCount) as commentCount,\n" +
                 "       If(imageCount is null, 0, imageCount) as imageCount,\n" +
                 "       case\n" +
-                "        when timestampdiff(day , P.updatedAt, current_timestamp) < 365\n" +
-                "        then date_format(P.updatedAt, '%m/%d %h:%i')\n" +
-                "        else date_format(P.updatedAt, '%Y/%m/%d %h:%i')\n" +
-                "        end as updatedAt\n" +
+                "        when timestampdiff(day , P.createdAt, current_timestamp) < 365\n" +
+                "        then date_format(P.createdAt, '%m/%d %h:%i')\n" +
+                "        else date_format(P.createdAt, '%Y/%m/%d %h:%i')\n" +
+                "        end as createdAt\n" +
                 "from Post as P\n" +
                 "    left join User U on P.userIdx=U.userIdx\n" +
                 "    left join PostSave PS on P.postIdx = PS.postIdx\n" +
@@ -568,7 +577,8 @@ public class PostDao {
                 "    left join(select postIdx, count(postImageIdx)as imageCount from PostImage group by postIdx)\n" +
                 "        PI on PI.postIdx = P.postIdx\n" +
                 "where PS.userIdx=? and P.status='ACTIVE'\n" +
-                "group by postIdx";
+                "group by postIdx\n" +
+                "order by createdAt desc";
         return this.jdbcTemplate.query(selectMysaveListQuery, // 리스트면 query, 리스트가 아니면 queryForObject
                 (rs,rowNum) -> new GetPostInfo(
                         rs.getInt("postIdx"),
