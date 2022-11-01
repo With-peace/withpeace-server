@@ -52,14 +52,16 @@ public class PostService {
     private final JwtService jwtService;
     PlatformTransactionManager transactionManager;
     private DataSource dataSource;
+    private final S3Service s3Service;
 
 
     @Autowired
-    public PostService(PostDao postDao, AuthDao authDao, PostProvider postProvider, JwtService jwtService) {
+    public PostService(PostDao postDao, AuthDao authDao, PostProvider postProvider, JwtService jwtService, S3Service s3Service) {
         this.postDao = postDao;
         this.authDao = authDao;
         this.postProvider = postProvider;
         this.jwtService = jwtService;
+        this.s3Service = s3Service;
 
     }
 
@@ -97,6 +99,9 @@ public class PostService {
     @Transactional
     public PostDeleteRes deletePost(Integer postIdx, Long userIdx, String accessToken) throws BaseException {
 
+        // 사용자의 userLevle 체크
+        String userLevel = postProvider.getUserLevel(userIdx);
+
         // 게시글 존재여부 확인
         if(postProvider.checkPost(postIdx) == 0){
             throw new BaseException(POST_DELETE_INVALID_POSTIDX);
@@ -108,28 +113,44 @@ public class PostService {
         }
 
         try{
+            // 게시글 삭제 (상태 변경)
             // Post - PATCH
             // postIdx
             postDao.deletePost(postIdx);
             System.out.println("삭제된 postIdx : "+postIdx);
 
+            // 게시글 이미지 조회
             // PostImage - GET
             // postIdx
-            List<String> postImageUrls = postDao.getPostImage(postIdx);
+            List<String> imgUrls = postDao.getPostImage(postIdx);
 
-            // 파일 삭제
-            boolean deleteResult = deletePostImage(postImageUrls);
-            if(!deleteResult){
-                // 파일 삭제에 실패한 경우
-                throw new BaseException(POST_DELETE_POSTIMAGE);
+            if(imgUrls.size() > 1){
+                // 이미지 파일 이름 추출
+                // S3에 이미지 파일 삭제
+                for(int i=0; i<imgUrls.size(); i++){
+                    int index = imgUrls.get(i).lastIndexOf("/");
+
+                    // S3에 이미지 파일 삭제
+                    s3Service.deleteFile(imgUrls.get(i).substring(index+1));
+                }
             }
 
+            // 게시글 이미지 삭제 (상태 변경)
             // PostImage - PATCH
             // postIdx
             postDao.deletePostImage(postIdx);
+            
+            // 모든 게시글 좋아요 삭제
+            // PostLike - DELETE
+            postDao.deletePostLikeAll(postIdx);
+
+            // 모든 게시글 저장 삭제
+            // PostSave - DELETE
+            postDao.deletePostSaveAll(postIdx);
+
 
             // 삭제된 게시글 인덱스
-            return new PostDeleteRes(postIdx, accessToken);
+            return new PostDeleteRes(userIdx, userLevel, postIdx, accessToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

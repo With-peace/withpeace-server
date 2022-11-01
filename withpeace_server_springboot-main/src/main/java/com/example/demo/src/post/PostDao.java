@@ -90,11 +90,25 @@ public class PostDao {
         return postImageUrls;
     }
 
-    /** 게시글 삭제 - PostImage **/
+    /** 게시글 삭제 (이미지) - PostImage **/
     public int deletePostImage(Integer postIdx){
         String deletePostQuery = "UPDATE PostImage SET status='DELETED' WHERE postIdx=?";
         Object[] deletePostParams = new Object[] {postIdx};
         return this.jdbcTemplate.update(deletePostQuery, deletePostParams);
+
+    }
+
+    /** 게시글 삭제 (좋아요) - PostLike **/
+    public int deletePostLikeAll(Integer postIdx){
+        String deletePostLikeQuery = "DELETE FROM PostLike where postIdx = ?";
+        return this.jdbcTemplate.update(deletePostLikeQuery, postIdx);
+
+    }
+
+    /** 게시글 삭제 (저장) - PostSave **/
+    public int deletePostSaveAll(Integer postIdx){
+        String deletePostSaveQuery = "DELETE FROM PostSave where postIdx = ?";
+        return this.jdbcTemplate.update(deletePostSaveQuery, postIdx);
 
     }
 

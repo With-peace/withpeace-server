@@ -1,6 +1,7 @@
 package com.example.demo.src.post;
 
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.example.demo.config.BaseException;
 import com.example.demo.config.BaseResponse;
@@ -81,6 +82,10 @@ public class S3Service  {
             }
         }
         return imgUrlList;
+    }
+
+    public void deleteFile(String fileName) {
+        s3Client.deleteObject(new DeleteObjectRequest(bucket+"/post/uploadImage", fileName));
     }
 
     // 이미지파일명 중복 방지

@@ -111,7 +111,8 @@ public class PostController {
      */
     @ResponseBody
     @PatchMapping("/delete/{postIdx}")
-    public BaseResponse<PostDeleteRes> deletePost(@PathVariable("postIdx") Integer postIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
+    public BaseResponse<PostDeleteRes> deletePost(@PathVariable("postIdx") Integer postIdx,
+                                                  @RequestBody Map<String, Long> userIdx) throws BaseException {
 
         // 유저인덱스 입력하지 않았을 때
         if (userIdx.get("userIdx") == null) {
