@@ -262,16 +262,11 @@ public class PostService {
 
     /** 게시글 저장 취소 **/
     @Transactional
-    public PostSaveRes deletePostSave(Long userIdx, Integer postSaveIdx, String accessToken) throws BaseException {
+    public PostSaveRes deletePostSave(Long userIdx, Integer postIdx, String accessToken) throws BaseException {
 
-        // 게시글 저장 존재여부 확인
-        if(postProvider.checkPostSave(postSaveIdx) == 0){
-            throw new BaseException(POST_DELETE_INVALID_POSTSAVEIDX);
-        }
-
-        // 유저가 접근가능한 게시글 좋아요 인지 확인
-        if(postProvider.checkPostSaveUser(postSaveIdx, userIdx) == false){
-            throw new BaseException(POST_DELETE_INVALID_USER);
+        // 게시글 존재여부 확인
+        if(postProvider.checkPost(postIdx) == 0){
+            throw new BaseException(POST_DELETE_INVALID_POSTIDX);
         }
 
         // 사용자의 userLevle 체크
@@ -280,7 +275,7 @@ public class PostService {
         try{
             // Delete - PostSave
             // postSaveIdx
-            postDao.deletePostSave(postSaveIdx);
+            int postSaveIdx = postDao.deletePostSave(postIdx, userIdx);
             System.out.println("삭제된 postSaveIdx : "+postSaveIdx);
 
             // 삭제된 게시글저장 인덱스

@@ -255,12 +255,12 @@ public class PostController {
 
     /**
      * 게시글 저장 취소 API
-     * [POST] /posts/deleteSave/:postSaveIdx
+     * [POST] /posts/deleteSave/:postIdx
      * @return BaseResponse<PostLikeRes>
      */
     @ResponseBody
-    @DeleteMapping("/deleteSave/{postSaveIdx}")
-    public BaseResponse<PostSaveRes> deletePostSave(@PathVariable("postSaveIdx") Integer postSaveIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
+    @DeleteMapping("/deleteSave/{postIdx}")
+    public BaseResponse<PostSaveRes> deletePostSave(@PathVariable("postIdx") Integer postIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
 
         // 유저인덱스 입력하지 않았을 때
         if (userIdx.get("userIdx") == null) {
@@ -276,12 +276,12 @@ public class PostController {
         }
 
         // 게시글 인덱스를 입력하지 않았을 떄
-        if (postSaveIdx == null) {
-            return new BaseResponse<>(POST_DELETE_EMPTY_POSTSAVEIDX);
+        if (postIdx == null) {
+            return new BaseResponse<>(POST_DELETE_EMPTY_POSTIDX);
         }
 
         try {
-            PostSaveRes postSaveRes = postService.deletePostSave(userIdx.get("userIdx"), postSaveIdx, accessToken);
+            PostSaveRes postSaveRes = postService.deletePostSave(userIdx.get("userIdx"), postIdx, accessToken);
             return new BaseResponse<>(postSaveRes);
 
         } catch (BaseException exception) {

@@ -195,14 +195,19 @@ public class PostDao {
     }
 
     /** 게시글 저장 취소 - PostSave **/
-    public void deletePostSave(Integer postSaveIdx){
-        // Delete - PostSave
-        // postSaveIdx
-        String deletePostSaveQuery = "delete from PostSave where postSaveIdx = ?";
+    public int deletePostSave(Integer postIdx, Long userIdx){
+        // DELETE - PostSave
+        // postIdx, userIdx
+        String lastDeletedIdQuery = "select postSaveIdx from PostSave where postIdx = ? and userIdx = ?";
+        Object[] deletePostSaveParams = new Object[]{postIdx, userIdx};
+        int postSaveIdx = this.jdbcTemplate.queryForObject(lastDeletedIdQuery,
+                int.class,
+                deletePostSaveParams);
 
-        Integer deletePostSaveParams = postSaveIdx;
-
+        String deletePostSaveQuery = "delete from PostSave where postIdx = ? and userIdx = ?";
         this.jdbcTemplate.update(deletePostSaveQuery, deletePostSaveParams);
+
+        return postSaveIdx;
     }
 
     /** 게시글 조회 **/
