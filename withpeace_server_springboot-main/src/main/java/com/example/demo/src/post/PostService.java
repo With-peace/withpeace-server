@@ -211,29 +211,23 @@ public class PostService {
 
     /** 게시글 좋아요 취소 **/
     @Transactional
-    public PostLikeRes deletePostLike(Long userIdx, Integer postLikeIdx, String accessToken) throws BaseException {
+    public PostLikeRes deletePostLike(Long userIdx, Integer postIdx, String accessToken) throws BaseException {
 
-        // 게시글 좋아요 존재여부 확인
-        if(postProvider.checkPostLike(postLikeIdx) == 0){
-            throw new BaseException(POST_DELETE_INVALID_POSTLIKEIDX);
-        }
-
-        // 유저가 접근가능한 게시글 좋아요 인지 확인
-        if(postProvider.checkPostLikeUser(postLikeIdx, userIdx) == false){
-            throw new BaseException(POST_DELETE_INVALID_USER);
+        // 게시글 존재여부 확인
+        if(postProvider.checkPost(postIdx) == 0){
+            throw new BaseException(POST_DELETE_INVALID_POSTIDX);
         }
 
         // 사용자의 userLevle 체크
         String userLevel = postProvider.getUserLevel(userIdx);
-
         try{
             // Delete - PostLike
             // postLikeIdx, userIdx
-            postDao.deletePostLike(postLikeIdx);
+            int postLikeIdx = postDao.deletePostLike(postIdx, userIdx);
             System.out.println("삭제된 postLikeIdx : "+postLikeIdx);
 
             // 삭제된 게시글좋아요 인덱스
-            return new PostLikeRes(userIdx,userLevel, postLikeIdx, accessToken);
+            return new PostLikeRes(userIdx, userLevel, postLikeIdx, accessToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

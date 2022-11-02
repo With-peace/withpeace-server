@@ -146,14 +146,19 @@ public class PostDao {
     }
 
     /** 게시글 좋아요 취소 - PostLike **/
-    public void deletePostLike(Integer postLikeIdx){
+    public int deletePostLike(Integer postIdx, Long userIdx) {
         // Delete - PostLike
-        // postLikeIdx
-        String deletePostLikeQuery = "delete from PostLike where postLikeIdx = ?";
+        // postIdx, userIdx
+        String lastDeletedIdQuery = "select postLikeIdx from PostLike where postIdx = ? and userIdx = ?";
+        Object[] deletePostLikeParams = new Object[]{postIdx, userIdx};
+        int postLikeIdx = this.jdbcTemplate.queryForObject(lastDeletedIdQuery,
+                int.class,
+                deletePostLikeParams);
 
-        Integer deletePostLikeParams = postLikeIdx;
-
+        String deletePostLikeQuery = "delete from PostLike where postIdx = ? and userIdx = ?";
         this.jdbcTemplate.update(deletePostLikeQuery, deletePostLikeParams);
+
+        return postLikeIdx;
     }
 
     /** 게시글 저장 - PostSave **/

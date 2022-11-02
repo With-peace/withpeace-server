@@ -181,12 +181,12 @@ public class PostController {
 
     /**
      * 게시글 좋아요 취소 API
-     * [DELETE] /posts/deleteLike/:postLikeIdx
+     * [DELETE] /posts/deleteLike/:postIdx
      * @return BaseResponse<PostLikeRes>
      */
     @ResponseBody
-    @DeleteMapping("/deleteLike/{postLikeIdx}")
-    public BaseResponse<PostLikeRes> deletePostLike(@PathVariable("postLikeIdx") Integer postLikeIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
+    @DeleteMapping("/deleteLike/{postIdx}")
+    public BaseResponse<PostLikeRes> deletePostLike(@PathVariable("postIdx") Integer postIdx, @RequestBody Map<String, Long> userIdx) throws BaseException {
 
         // 유저인덱스 입력하지 않았을 때
         if (userIdx.get("userIdx") == null) {
@@ -202,12 +202,12 @@ public class PostController {
         }
 
         // 게시글 인덱스를 입력하지 않았을 떄
-        if (postLikeIdx == null) {
-            return new BaseResponse<>(POST_DELETE_EMPTY_POSTLIKEIDX);
+        if (postIdx == null) {
+            return new BaseResponse<>(POST_DELETE_EMPTY_POSTIDX);
         }
 
         try {
-            PostLikeRes postLikeRes = postService.deletePostLike(userIdx.get("userIdx"), postLikeIdx, accessToken);
+            PostLikeRes postLikeRes = postService.deletePostLike(userIdx.get("userIdx"), postIdx, accessToken);
             return new BaseResponse<>(postLikeRes);
 
         } catch (BaseException exception) {
