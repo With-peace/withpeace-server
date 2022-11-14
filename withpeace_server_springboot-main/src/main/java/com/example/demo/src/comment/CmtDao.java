@@ -49,4 +49,14 @@ public class CmtDao {
         Object[] updateCmtParams = new Object[] {patchCommentsReq.getContent(), commentIdx};
         return this.jdbcTemplate.update(updateCmtQuery, updateCmtParams);
     }
+
+    /** 댓글 삭제 - Comment **/
+    public int deleteCmt(Integer commentIdx) {
+        // Delete - Comment
+        // commentIdx
+        String deleteCmtQuery = "delete from Comment where commentIdx = ?";
+        int deleteCmtParams = commentIdx;
+
+        return this.jdbcTemplate.update(deleteCmtQuery, deleteCmtParams);
+    }
 }

@@ -89,4 +89,28 @@ public class CmtService {
             throw new BaseException(DATABASE_ERROR);
         }
     }
+
+    /** 댓글 삭제 **/
+    @Transactional
+    public PatchCommentsRes deleteCmt(Integer commentIdx, Long userIdx, String accessToken) throws BaseException {
+
+        // 댓글의 접근권한 확인
+        if(cmtProvider.checkCmtUser(commentIdx) != userIdx){
+            // 댓글의 작성자가 아닌 경우
+            throw new BaseException(PATCH_COMMENTS_INVALID_USER);
+        }
+
+        try{
+            // 사용자의 userLevel 체크
+            String userLevel = postProvider.getUserLevel(userIdx);
+
+            // Delete - Comment
+            // commentIdx
+            cmtDao.deleteCmt(commentIdx);
+
+            return new PatchCommentsRes(userIdx, userLevel, commentIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
 }
