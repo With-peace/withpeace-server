@@ -35,4 +35,18 @@ public class CmtDao {
         String lastInsertIdQuery = "select last_insert_id()";
         return this.jdbcTemplate.queryForObject(lastInsertIdQuery,int.class);
     }
+
+    /** 댓글 작성자 확인 **/
+    public Long checkCmtUser(Integer commentIdx){
+        String checkCmtUserQuery = "select userIdx from Comment where commentIdx = ?";
+        Integer checkCmtUserParams = commentIdx;
+        return this.jdbcTemplate.queryForObject(checkCmtUserQuery, Long.class, checkCmtUserParams);
+    }
+
+    /** 댓글 수정 - Comment **/
+    public int updateCmt(Integer commentIdx, PatchCommentsReq patchCommentsReq){
+        String updateCmtQuery = "UPDATE Comment SET content=? WHERE commentIdx=?";
+        Object[] updateCmtParams = new Object[] {patchCommentsReq.getContent(), commentIdx};
+        return this.jdbcTemplate.update(updateCmtQuery, updateCmtParams);
+    }
 }

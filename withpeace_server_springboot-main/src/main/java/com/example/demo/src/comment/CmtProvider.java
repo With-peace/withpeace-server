@@ -25,4 +25,13 @@ public class CmtProvider {
         this.jwtService = jwtService;
     }
 
+    /** 댓글 작성자 확인 **/
+    public Long checkCmtUser(Integer commentIdx) throws BaseException{
+        try{
+            return cmtDao.checkCmtUser(commentIdx);
+        } catch (Exception exception){
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

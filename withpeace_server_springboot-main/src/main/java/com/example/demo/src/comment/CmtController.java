@@ -85,4 +85,45 @@ public class CmtController {
         }
     }
 
+
+    /**
+     * 댓글 수정 API
+     * [PATCH] /comments/patch/:commentIdx
+     *
+     * @return BaseResponse<PostCommentsRes>
+     */
+    @ResponseBody
+    @PatchMapping("/patch/{commentIdx}")
+    public BaseResponse<PatchCommentsRes> createCmt(@PathVariable("commentIdx") Integer commentIdx,
+                                                    @RequestBody PatchCommentsReq patchCommentsReq) throws BaseException {
+        // 유저인덱스 입력하지 않았을 때
+        if (patchCommentsReq.getUserIdx() == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(patchCommentsReq.getUserIdx());
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 댓글 인덱스를 입력하지 않았을 떄
+        if (commentIdx == null) {
+            return new BaseResponse<>(PATCH_COMMENTS_EMPTY_CMTIDX);
+        }
+        // 내용을 입력하지 않았을 때
+        if (patchCommentsReq.getContent() == null) {
+            return new BaseResponse<>(POST_COMMENTS_EMPTY_CONTENT);
+        }
+
+        try {
+            PatchCommentsRes patchCommentsRes = cmtService.patchCmt(commentIdx, patchCommentsReq, accessToken);
+            return new BaseResponse<>(patchCommentsRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
 }

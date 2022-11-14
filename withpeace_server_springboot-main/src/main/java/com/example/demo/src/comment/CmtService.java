@@ -48,7 +48,7 @@ public class CmtService {
         this.dataSource = dataSource;
     }
 
-    /** 게시글 생성 **/
+    /** 댓글 생성 **/
     @Transactional
     public PostCommentsRes createCmt(Integer postIdx, PostCommentsReq postCommentsReq, String accessToken) throws BaseException {
 
@@ -61,8 +61,30 @@ public class CmtService {
             int commentIdx = cmtDao.insertCmt(postIdx, postCommentsReq);
             System.out.println("추가된 commentIdx : "+commentIdx);
 
-            // 추가된 게시글인덱스
             return new PostCommentsRes(postCommentsReq.getUserIdx(), userLevel, commentIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 댓글 수정 **/
+    @Transactional
+    public PatchCommentsRes patchCmt(Integer commentIdx, PatchCommentsReq patchCommentsReq, String accessToken) throws BaseException {
+
+        // 댓글의 접근권한 확인
+        if(cmtProvider.checkCmtUser(commentIdx) != patchCommentsReq.getUserIdx()){
+            // 댓글의 작성자가 아닌 경우
+            throw new BaseException(PATCH_COMMENTS_INVALID_USER);
+        }
+
+        try{
+            // 사용자의 userLevle 체크
+            String userLevel = postProvider.getUserLevel(patchCommentsReq.getUserIdx());
+
+            // Update - Comment
+            // commentIdx, content
+            cmtDao.updateCmt(commentIdx, patchCommentsReq);
+            return new PatchCommentsRes(patchCommentsReq.getUserIdx(), userLevel, commentIdx, accessToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

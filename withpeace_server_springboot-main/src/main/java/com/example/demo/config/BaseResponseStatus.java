@@ -73,6 +73,10 @@ public enum BaseResponseStatus {
     POST_COMMENTS_EMPTY_CONTENT(false, 2080, "내용을 입력해주세요."),
     POST_COMMENTS_EMPTY_ISANONYMOUS(false, 2081, "익명여부를 확인해주세요."),
 
+    // [PATCH] /comments/:commentIdx
+    PATCH_COMMENTS_EMPTY_CMTIDX(false, 2082, "댓글 인덱스를 입력해주세요."),
+    PATCH_COMMENTS_INVALID_USER(false,2083,"접근권한이 없는 유저입니다."),
+
 
     /**
      * 3000 : Response 오류
@@ -103,7 +107,6 @@ public enum BaseResponseStatus {
 
     // [PATCH] /posts/delete/:postIdx
     POST_DELETE_POSTIMAGE(false, 4015, "이미지 파일 삭제에 실패하였습니다.");
-
 
     // 5000 : 필요시 만들어서 쓰세요
     // 6000 : 필요시 만들어서 쓰세요
