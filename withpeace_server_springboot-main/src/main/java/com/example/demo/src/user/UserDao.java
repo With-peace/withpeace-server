@@ -1,6 +1,9 @@
 package com.example.demo.src.user;
 
 
+import com.example.demo.src.post.model.GetCommentRes;
+import com.example.demo.src.post.model.GetPostImageRes;
+import com.example.demo.src.post.model.GetPostRes;
 import com.example.demo.src.user.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -166,6 +169,25 @@ public class UserDao {
         String isExistInviteCodeParams = inviteCode;
         return this.jdbcTemplate.queryForObject(isExistInviteCodeQuery, int.class,
                 isExistInviteCodeParams);
+    }
+
+    /** 사용자 화면 조회 **/
+    public UserInfoRes selectUserInfo(Long userIdx, String userLevel, String accessToken){
+        String selectUserInfoQuery =
+                "select userIdx, userLevel, name, dong, ho, profileImgUrl as profileImg\n" +
+                "from User\n" +
+                "where userIdx=?";
+        Long selectUserInfoParam = userIdx;
+        return this.jdbcTemplate.queryForObject(selectUserInfoQuery, // 리스트면 query, 리스트가 아니면 queryForObject
+                (rs,rowNum) -> new UserInfoRes(
+                        userIdx, // 현재 사용자
+                        userLevel,
+                        rs.getString("name"),
+                        rs.getInt("dong"),
+                        rs.getInt("ho"),
+                        rs.getString("profileImg"),
+                        accessToken
+                ), selectUserInfoParam);
     }
 
 

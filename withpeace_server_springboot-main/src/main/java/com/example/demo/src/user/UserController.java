@@ -211,6 +211,38 @@ public class UserController {
 
 
     /**
+     * 사용자 화면 조회 API
+     * [GET] /users/userInfo
+     *
+     * @return BaseResponse<UserInfoRes>
+     */
+    @ResponseBody
+    @GetMapping("/userInfo")
+    public BaseResponse<UserInfoRes> getUserInfo(@RequestBody Map<String, Long> userIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        try {
+            UserInfoRes userInfoRes = userProvider.getUserInfo(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(userInfoRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
      * 토큰 테스트 API
      * [GET] /users/tokenTest/{userIdx}
      *
