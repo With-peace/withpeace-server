@@ -74,6 +74,22 @@ public class UserProvider {
         }
     }
 
+    /** 요청 목록 조회 (관리자) **/
+    public UserReqListRes getUserReqList(Long userIdx, String accessToken) throws BaseException{
+        try{
+            // 사용자의 userLevel 체크
+            String userLevel = postProvider.getUserLevel(userIdx);
+
+            UserReqListRes userReqListRes = userDao.selectUserReqList(userIdx, userLevel, accessToken);
+
+            return userReqListRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 
 
 }

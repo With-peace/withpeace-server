@@ -243,6 +243,38 @@ public class UserController {
 
 
     /**
+     * 요청 목록 조회 (관리자) API
+     * [GET] /users/reqList
+     *
+     * @return BaseResponse<UserReqListRes>
+     */
+    @ResponseBody
+    @GetMapping("/reqList")
+    public BaseResponse<UserReqListRes> getUserReqList(@RequestBody Map<String, Long> userIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        try {
+            UserReqListRes userReqListRes = userProvider.getUserReqList(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(userReqListRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
      * 토큰 테스트 API
      * [GET] /users/tokenTest/{userIdx}
      *

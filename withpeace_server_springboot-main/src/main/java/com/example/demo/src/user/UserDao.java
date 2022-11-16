@@ -3,6 +3,7 @@ package com.example.demo.src.user;
 
 import com.example.demo.src.post.model.GetCommentRes;
 import com.example.demo.src.post.model.GetPostImageRes;
+import com.example.demo.src.post.model.GetPostInfo;
 import com.example.demo.src.post.model.GetPostRes;
 import com.example.demo.src.user.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import java.util.List;
 public class UserDao {
 
     private JdbcTemplate jdbcTemplate;
+    private List<UserReqList> UserReqList;
 
     @Autowired
     public void setDataSource(DataSource dataSource){
@@ -188,6 +190,37 @@ public class UserDao {
                         rs.getString("profileImg"),
                         accessToken
                 ), selectUserInfoParam);
+    }
+
+    /** 요청 목록 조회 (관리자) **/
+    public UserReqListRes selectUserReqList(Long userIdx, String userLevel, String accessToken){
+        // 사용자의 buildingIdx 조회
+        String selectBuildingIdxQuery =
+                "select buildingIdx\n" +
+                        "from User\n" +
+                        "where userIdx=?";
+        int buildingIdx = this.jdbcTemplate.queryForObject(selectBuildingIdxQuery,
+                (rs,rowNum) -> rs.getInt("buildingIdx"), userIdx);
+        
+        // 해당하는 buildingIdx의 주민 요청 목록 조회
+        String selectUserReqListQuery =
+                "select userIdx as userRequestIdx, name, dong, ho, phoneNum\n" +
+                "from User\n" +
+                "where buildingIdx=? and reqStatus='Request' and status='ACTIVE'";
+        return new UserReqListRes(
+                userIdx,
+                userLevel,
+                UserReqList = this.jdbcTemplate.query(selectUserReqListQuery,
+                                (rk, rownum) -> new UserReqList(
+                                        rk.getLong("userRequestIdx"),
+                                        rk.getString("name"),
+                                        rk.getInt("dong"),
+                                        rk.getInt("ho"),
+                                        rk.getString("phoneNum")
+                                ), buildingIdx),
+                accessToken
+        );
+
     }
 
 
