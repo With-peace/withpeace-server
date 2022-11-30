@@ -224,12 +224,20 @@ public class UserDao {
     }
 
     /** 요청 승인 (관리자) **/
-    public void updateUserReq(UserReqAllowReq userReqAllowReq, Long userRequestIdx){
+    public void updateUserReqAllow(UserReqAllowReq userReqAllowReq, Long userRequestIdx){
         String updateUserReqQuery = "UPDATE User SET dong=?, ho=?, reqStatus='Approve' WHERE userIdx=?;";
         Object[] updateUserReqParams = new Object[]{
                 userReqAllowReq.getDong(),
                 userReqAllowReq.getHo(),
                 userRequestIdx};
+
+        this.jdbcTemplate.update(updateUserReqQuery, updateUserReqParams);
+    }
+
+    /** 요청 거절 (관리자) **/
+    public void updateUserReqRefuse(Long userRequestIdx){
+        String updateUserReqQuery = "UPDATE User SET reqStatus='Refuse' WHERE userIdx=?;";
+        Long updateUserReqParams = userRequestIdx;
 
         this.jdbcTemplate.update(updateUserReqQuery, updateUserReqParams);
     }

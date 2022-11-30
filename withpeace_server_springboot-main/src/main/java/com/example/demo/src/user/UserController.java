@@ -318,6 +318,39 @@ public class UserController {
 
 
     /**
+     * 요청 거절 (관리자) API
+     * [PATCH] /users/request/refuse/:userRequestIdx
+     *
+     * @return BaseResponse<UserReqListRes>
+     */
+    @ResponseBody
+    @PatchMapping("/request/refuse/{userRequestIdx}")
+    public BaseResponse<UserReqAllowRes> userReqRefuse(@RequestBody Map<String, Long> userIdx,
+                                                      @PathVariable Long userRequestIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        try {
+            UserReqAllowRes userReqAllowRes = userService.userReqRefuse(userIdx.get("userIdx"), userRequestIdx, accessToken);
+            return new BaseResponse<>(userReqAllowRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
      * 토큰 테스트 API
      * [GET] /users/tokenTest/{userIdx}
      *

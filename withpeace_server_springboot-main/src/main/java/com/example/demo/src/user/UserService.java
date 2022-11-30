@@ -180,11 +180,31 @@ public class UserService {
         try{
             // Patch - User
             // userRequestIdx
-            userDao.updateUserReq(userReqAllowReq, userRequestIdx);
+            userDao.updateUserReqAllow(userReqAllowReq, userRequestIdx);
             System.out.println("승인된 userRequestIdx : "+userRequestIdx);
 
             // 추가된 게시글저장 인덱스
             return new UserReqAllowRes(userReqAllowReq.getUserIdx(), userLevel, userRequestIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 요청 거절 (관리자) **/
+    @Transactional
+    public UserReqAllowRes userReqRefuse(Long userIdx, Long userRequestIdx, String accessToken) throws BaseException {
+
+        // 사용자의 userLevel 체크
+        String userLevel = postProvider.getUserLevel(userIdx);
+
+        try{
+            // Patch - User
+            // userRequestIdx
+            userDao.updateUserReqRefuse(userRequestIdx);
+            System.out.println("거절된 userRequestIdx : "+userRequestIdx);
+
+            // 추가된 게시글저장 인덱스
+            return new UserReqAllowRes(userIdx, userLevel, userRequestIdx, accessToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
