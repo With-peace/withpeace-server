@@ -210,4 +210,28 @@ public class UserService {
         }
     }
 
+    /** 이사 (회원 주소 이동) **/
+    @Transactional
+    public UserMoveRes userMove(UserMoveReq userMoveReq, String accessToken) throws BaseException {
+
+        // 사용자의 userLevel 체크
+        String userLevel = postProvider.getUserLevel(userMoveReq.getUserIdx());
+
+        // 초대코드 존재확인
+        if(userDao.isExistInviteCode(userMoveReq.getInviteCode()) == 0){
+            throw new BaseException(INVALID_INVITECODE);
+        }
+
+        try{
+            // Patch - User
+            // inviteCode, dong, ho
+            int buildingIdx = userDao.updateUserMove(userMoveReq);
+
+            // 추가된 게시글저장 인덱스
+            return new UserMoveRes(userMoveReq.getUserIdx(), userLevel, buildingIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

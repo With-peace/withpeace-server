@@ -383,6 +383,53 @@ public class UserController {
 
 
     /**
+     * 이사 (회원 주소 이동) API
+     * [PATCH] /users/move
+     *
+     * @return BaseResponse<UserMoveRes>
+     */
+    @ResponseBody
+    @PatchMapping("/move")
+    public BaseResponse<UserMoveRes> userMove(@RequestBody UserMoveReq userMoveReq) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userMoveReq.getUserIdx() == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userMoveReq.getUserIdx());
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 초대코드 입력하지 않았을 때
+        if (userMoveReq.getInviteCode() == null) {
+            return new BaseResponse<>(POST_USERS_RESIDENT_EMPTY_INVITECODE);
+        }
+
+        // 동 입력하지 않았을 때
+        if (userMoveReq.getDong() == null) {
+            userMoveReq.setDong(101);
+        }
+
+        // 호수 입력하지 않았을 때
+        if (userMoveReq.getHo() == null) {
+            return new BaseResponse<>(POST_USERS_RESIDENT_EMPTY_HO);
+        }
+
+        try {
+            UserMoveRes userMoveRes = userService.userMove(userMoveReq, accessToken);
+            return new BaseResponse<>(userMoveRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
      * 토큰 테스트 API
      * [GET] /users/tokenTest/{userIdx}
      *

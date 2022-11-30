@@ -255,6 +255,24 @@ public class UserDao {
         return this.jdbcTemplate.queryForObject(getInviteCodeQuery, String.class, buildingIdx);
     }
 
+    /** 이사 (회원 주소 이동) **/
+    public int updateUserMove(UserMoveReq userMoveReq){
+        String getBuildingIdxQuery = "select buildingIdx from Building where inviteCode = ? and status = 'Approve'";
+        String getBuildingIdxParam = userMoveReq.getInviteCode();
+        int buildingIdx = this.jdbcTemplate.queryForObject(getBuildingIdxQuery, int.class, getBuildingIdxParam);
+
+        String updateUserMoveQuery = "UPDATE User SET buildingIdx=?, dong=?, ho=?, reqStatus='Request' WHERE userIdx=?;";
+        Object[] updateUserMoveParams = new Object[]{
+                buildingIdx,
+                userMoveReq.getDong(),
+                userMoveReq.getHo(),
+                userMoveReq.getUserIdx()};
+
+        this.jdbcTemplate.update(updateUserMoveQuery, updateUserMoveParams);
+
+        return buildingIdx;
+    }
+
 
     public void SaveRefeshTokenUserManager(Long userIdx, String refreshToken){
         String modifyUserNameQuery = "update User set refreshToken = ? where userIdx = ? ";
