@@ -90,6 +90,25 @@ public class UserProvider {
         }
     }
 
+    /** 초대코드 조회 (관리자) **/
+    public GetInviteCodeRes getInviteCode(Long userIdx, String accessToken) throws BaseException{
+        try{
+            // 사용자의 userLevel 체크
+            String userLevel = postProvider.getUserLevel(userIdx);
+
+            // 사용자의 buildingIdx 조회
+            String inviteCode = userDao.getInviteCode(userIdx);
+
+            GetInviteCodeRes getInviteCodeRes = new GetInviteCodeRes(userIdx, userLevel, inviteCode, accessToken);
+
+            return getInviteCodeRes;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 
 
 }

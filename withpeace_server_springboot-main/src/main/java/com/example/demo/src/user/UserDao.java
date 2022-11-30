@@ -242,6 +242,19 @@ public class UserDao {
         this.jdbcTemplate.update(updateUserReqQuery, updateUserReqParams);
     }
 
+    /** 초대코드 조회 (관리자) **/
+    public String getInviteCode(Long userIdx){
+        String selectBuildingIdxQuery =
+                "select buildingIdx\n" +
+                        "from User\n" +
+                        "where userIdx=?";
+        int buildingIdx = this.jdbcTemplate.queryForObject(selectBuildingIdxQuery,
+                (rs,rowNum) -> rs.getInt("buildingIdx"), userIdx);
+
+        String getInviteCodeQuery = "select inviteCode from Building where buildingIdx=?;";
+        return this.jdbcTemplate.queryForObject(getInviteCodeQuery, String.class, buildingIdx);
+    }
+
 
     public void SaveRefeshTokenUserManager(Long userIdx, String refreshToken){
         String modifyUserNameQuery = "update User set refreshToken = ? where userIdx = ? ";

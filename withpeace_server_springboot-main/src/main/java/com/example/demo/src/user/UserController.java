@@ -351,6 +351,38 @@ public class UserController {
 
 
     /**
+     * 초대코드 조회 (관리자) API
+     * [GET] /users/inviteCode
+     *
+     * @return BaseResponse<GetInviteCodeRes>
+     */
+    @ResponseBody
+    @GetMapping("/inviteCode")
+    public BaseResponse<GetInviteCodeRes> getInviteCode(@RequestBody Map<String, Long> userIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        try {
+            GetInviteCodeRes getInviteCodeRes = userProvider.getInviteCode(userIdx.get("userIdx"), accessToken);
+            return new BaseResponse<>(getInviteCodeRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
      * 토큰 테스트 API
      * [GET] /users/tokenTest/{userIdx}
      *
