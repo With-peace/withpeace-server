@@ -7,10 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UserReqList {
+public class UserReqAllowRes {
+    private Long userIdx;
+    private String userLevel;
     private Long userRequestIdx;
-    private String name;
-    private Integer dong;
-    private Integer ho;
-    private String phoneNum;
+    private String accessToken;
 }

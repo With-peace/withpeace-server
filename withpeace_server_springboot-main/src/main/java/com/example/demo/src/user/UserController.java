@@ -155,11 +155,11 @@ public class UserController {
         }
         // 초대코드 입력하지 않았을 때
         if (postUserResidentReq.getInviteCode() == null) {
-            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_ADDRESS);
+            return new BaseResponse<>(POST_USERS_RESIDENT_EMPTY_INVITECODE);
         }
         // 호수 입력하지 않았을 때
         if (postUserResidentReq.getHo() == null) {
-            return new BaseResponse<>(POST_USERS_MANAGER_EMPTY_BUILDINGNAME);
+            return new BaseResponse<>(POST_USERS_RESIDENT_EMPTY_HO);
         }
         // 정보 이용 동의하지 않았을 때
         if (postUserResidentReq.getAgreeInfo().equals("T") == false || postUserResidentReq.getAgreeInfo() == null) {
@@ -268,6 +268,49 @@ public class UserController {
         try {
             UserReqListRes userReqListRes = userProvider.getUserReqList(userIdx.get("userIdx"), accessToken);
             return new BaseResponse<>(userReqListRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
+     * 요청 승인 (관리자) API
+     * [PATCH] /users/request/allow/:userRequestIdx
+     *
+     * @return BaseResponse<UserReqListRes>
+     */
+    @ResponseBody
+    @PatchMapping("/request/allow/{userRequestIdx}")
+    public BaseResponse<UserReqAllowRes> userReqAllow(@RequestBody  UserReqAllowReq userReqAllowReq,
+                                                      @PathVariable Long userRequestIdx) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userReqAllowReq.getUserIdx() == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userReqAllowReq.getUserIdx());
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 동 입력하지 않았을 때
+        if (userReqAllowReq.getDong() == null) {
+            userReqAllowReq.setDong(101);
+        }
+
+        // 호수 입력하지 않았을 때
+        if (userReqAllowReq.getHo() == null) {
+            return new BaseResponse<>(POST_USERS_RESIDENT_EMPTY_HO);
+        }
+
+        try {
+            UserReqAllowRes userReqAllowRes = userService.userReqAllow(userReqAllowReq, userRequestIdx, accessToken);
+            return new BaseResponse<>(userReqAllowRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }

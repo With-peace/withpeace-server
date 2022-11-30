@@ -223,6 +223,17 @@ public class UserDao {
 
     }
 
+    /** 요청 승인 (관리자) **/
+    public void updateUserReq(UserReqAllowReq userReqAllowReq, Long userRequestIdx){
+        String updateUserReqQuery = "UPDATE User SET dong=?, ho=?, reqStatus='Approve' WHERE userIdx=?;";
+        Object[] updateUserReqParams = new Object[]{
+                userReqAllowReq.getDong(),
+                userReqAllowReq.getHo(),
+                userRequestIdx};
+
+        this.jdbcTemplate.update(updateUserReqQuery, updateUserReqParams);
+    }
+
 
     public void SaveRefeshTokenUserManager(Long userIdx, String refreshToken){
         String modifyUserNameQuery = "update User set refreshToken = ? where userIdx = ? ";

@@ -5,6 +5,8 @@ import com.example.demo.config.BaseException;
 
 import com.example.demo.config.BaseResponse;
 import com.example.demo.src.auth.*;
+import com.example.demo.src.post.PostProvider;
+import com.example.demo.src.post.model.PostSaveRes;
 import com.example.demo.src.user.model.*;
 import com.example.demo.utils.JwtService;
 import com.example.demo.utils.SHA256;
@@ -40,16 +42,18 @@ public class UserService {
     private final UserDao userDao;
     private final AuthDao authDao;
     private final UserProvider userProvider;
+    private final PostProvider postProvider;
     private final JwtService jwtService;
     PlatformTransactionManager transactionManager;
     private DataSource dataSource;
 
 
     @Autowired
-    public UserService(UserDao userDao, AuthDao authDao, UserProvider userProvider, JwtService jwtService) {
+    public UserService(UserDao userDao, AuthDao authDao, UserProvider userProvider, PostProvider postProvider, JwtService jwtService) {
         this.userDao = userDao;
         this.authDao = authDao;
         this.userProvider = userProvider;
+        this.postProvider = postProvider;
         this.jwtService = jwtService;
 
     }
@@ -161,6 +165,26 @@ public class UserService {
 
             // 추가된 유저요청인덱스, 건물 인덱스 반환
             return new PostUserResidentRes(userIdx, userLevel, accessToken, refreshToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 요청 승인 (관리자) **/
+    @Transactional
+    public UserReqAllowRes userReqAllow(UserReqAllowReq userReqAllowReq, Long userRequestIdx, String accessToken) throws BaseException {
+
+        // 사용자의 userLevel 체크
+        String userLevel = postProvider.getUserLevel(userReqAllowReq.getUserIdx());
+
+        try{
+            // Patch - User
+            // userRequestIdx
+            userDao.updateUserReq(userReqAllowReq, userRequestIdx);
+            System.out.println("승인된 userRequestIdx : "+userRequestIdx);
+
+            // 추가된 게시글저장 인덱스
+            return new UserReqAllowRes(userReqAllowReq.getUserIdx(), userLevel, userRequestIdx, accessToken);
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }
