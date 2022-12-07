@@ -91,6 +91,8 @@ public enum BaseResponseStatus {
 
     FAILED_TO_KAKAOLOGIN(false,3016,"[카카오 로그인] 없는 아이디거나 비밀번호가 틀렸습니다."),
 
+    NOT_EQUAL_PASSWORD(false,3017,"비밀번호가 일치하지 않습니다."),
+
 
 
     /**

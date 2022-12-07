@@ -5,6 +5,8 @@ import com.example.demo.config.BaseException;
 
 import com.example.demo.config.BaseResponse;
 import com.example.demo.src.auth.*;
+import com.example.demo.src.auth.model.PostLoginRes;
+import com.example.demo.src.auth.model.UserInfo;
 import com.example.demo.src.post.PostProvider;
 import com.example.demo.src.post.model.PostSaveRes;
 import com.example.demo.src.user.model.*;
@@ -229,6 +231,38 @@ public class UserService {
 
             // 추가된 게시글저장 인덱스
             return new UserMoveRes(userMoveReq.getUserIdx(), userLevel, buildingIdx, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
+    /** 회원탈퇴 **/
+    @Transactional
+    public UserWithdrawalRes UserWithdrawal(UserWithdrawalReq userWithdrawalReq) throws BaseException {
+        // 탈퇴하려는 회원의 비밀번호 가져옴
+        String userPwd = userDao.getUserPwd(userWithdrawalReq.getUserIdx());
+        String encryptPwd;
+
+        try{
+            // 입력받은 비밀번호 암호화 -> SHA256
+            encryptPwd = new SHA256().encrypt(userWithdrawalReq.getPassword());
+        }
+        catch (Exception exception){
+            throw new BaseException(PASSWORD_ENCRYPTION_ERROR);
+        }
+
+        // 저장되어있는 비밀번호와 입력받은 비밀번호 비교
+        if(!userPwd.equals(encryptPwd)){
+            // 비밀번호 일치하지 않을 경우
+            throw new BaseException(NOT_EQUAL_PASSWORD);
+        }
+
+        try{
+            // 비교를 해주고, 이상이 없다면 탈퇴 진행
+            // Patch - User
+            userDao.updateUserWithdrawal(userWithdrawalReq);
+
+            return new UserWithdrawalRes(userWithdrawalReq.getUserIdx(), userWithdrawalReq.getReason());
         } catch (Exception exception) {
             throw new BaseException(DATABASE_ERROR);
         }

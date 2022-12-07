@@ -430,6 +430,48 @@ public class UserController {
 
 
     /**
+     * 회원탈퇴 API
+     * [PATCH] /users/withdrawal
+     *
+     * @return BaseResponse<UserWithdrawalRes>
+     */
+    @ResponseBody
+    @PatchMapping("/withdrawal")
+    public BaseResponse<UserWithdrawalRes> UserWithdrawal(@RequestBody UserWithdrawalReq userWithdrawalReq) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userWithdrawalReq.getUserIdx() == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userWithdrawalReq.getUserIdx());
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 탈퇴사유 입력하지 않았을 때
+        if (userWithdrawalReq.getReason() == null) {
+            userWithdrawalReq.setReason(null);
+        }
+
+        // 비밀번호 입력하지 않았을 때
+        if (userWithdrawalReq.getPassword() == null) {
+            return new BaseResponse<>(POST_USERS_EMPTY_PASSWORD);
+        }
+
+        try {
+            UserWithdrawalRes userWithdrawalRes = userService.UserWithdrawal(userWithdrawalReq);
+            return new BaseResponse<>(userWithdrawalRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
      * 토큰 테스트 API
      * [GET] /users/tokenTest/{userIdx}
      *

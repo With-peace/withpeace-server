@@ -273,6 +273,22 @@ public class UserDao {
         return buildingIdx;
     }
 
+    /** 회원탈퇴 - 회원 비밀번호 확인 **/
+    public String getUserPwd(Long userIdx){
+        String selectUserPwdQuery =
+                        "select password\n" +
+                                "from User\n" +
+                                "where userIdx=?";
+        return this.jdbcTemplate.queryForObject(selectUserPwdQuery, String.class, userIdx);
+    }
+
+    /** 회원탈퇴 **/
+    public void updateUserWithdrawal(UserWithdrawalReq userWithdrawalReq){
+        String updateUserWithdrawalQuery = "UPDATE User SET refreshToken=null, status='DELETED' WHERE userIdx=?;";
+
+        this.jdbcTemplate.update(updateUserWithdrawalQuery, userWithdrawalReq.getUserIdx());
+    }
+
 
     public void SaveRefeshTokenUserManager(Long userIdx, String refreshToken){
         String modifyUserNameQuery = "update User set refreshToken = ? where userIdx = ? ";
