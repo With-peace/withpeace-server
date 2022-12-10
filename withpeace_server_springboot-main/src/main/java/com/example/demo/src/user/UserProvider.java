@@ -109,6 +109,20 @@ public class UserProvider {
         }
     }
 
+    /** 프로필 사진 수정 - 기존 프로필 이미지 조회 **/
+    public String userProfileImg(Long userIdx) throws BaseException{
+        try{
+            // 사용자의 profileImg 조회
+            String profileImg = userDao.getProfileImg(userIdx);
+
+            return profileImg;
+        }
+        catch (Exception exception) {
+            System.out.println(exception);
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 
 
 }

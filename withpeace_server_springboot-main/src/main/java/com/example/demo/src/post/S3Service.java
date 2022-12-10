@@ -61,6 +61,7 @@ public class S3Service  {
                 .build();
     }
 
+    // Post - 이미지 업로드
     public List<String> upload(List<MultipartFile> multipartFile) {
         List<String> imgUrlList = new ArrayList<>();
 
@@ -82,6 +83,27 @@ public class S3Service  {
             }
         }
         return imgUrlList;
+    }
+
+    // User - 프로필 이미지 업로드
+    public String profileImgUpload(MultipartFile file) {
+        String imgUrl = null;
+
+        String fileName = createFileName(file.getOriginalFilename());
+        System.out.println(fileName);
+        ObjectMetadata objectMetadata = new ObjectMetadata();
+        objectMetadata.setContentLength(file.getSize());
+        objectMetadata.setContentType(file.getContentType());
+
+        try(InputStream inputStream = file.getInputStream()) {
+            s3Client.putObject(new PutObjectRequest(bucket+"/profileImg/uploadProfileImg", fileName, inputStream, objectMetadata)
+                    .withCannedAcl(CannedAccessControlList.PublicRead));
+            imgUrl = s3Client.getUrl(bucket+"/profileImg/uploadProfileImg", fileName).toString();
+        } catch(IOException e) {
+//                throw new PrivateException(Code.IMAGE_UPLOAD_ERROR);
+            System.out.println("파일 업로드 오류");
+        }
+        return imgUrl;
     }
 
     public void deleteFile(String fileName) {

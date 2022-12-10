@@ -77,6 +77,9 @@ public enum BaseResponseStatus {
     PATCH_COMMENTS_EMPTY_CMTIDX(false, 2082, "댓글 인덱스를 입력해주세요."),
     PATCH_COMMENTS_INVALID_USER(false,2083,"접근권한이 없는 유저입니다."),
 
+    // [PATCH] /users/profileImage
+    PATCH_USERS_IMGURL_EMPTY(false, 2085, "프로필 이미지를 입력해주세요."),
+
 
     /**
      * 3000 : Response 오류

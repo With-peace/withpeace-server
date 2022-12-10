@@ -3,6 +3,7 @@ package com.example.demo.src.user;
 import com.example.demo.config.BaseException;
 import com.example.demo.config.BaseResponse;
 import com.example.demo.config.BaseResponseStatus;
+import com.example.demo.src.post.S3Service;
 import com.example.demo.src.user.model.*;
 import com.example.demo.src.auth.*;
 import com.example.demo.utils.*;
@@ -10,12 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.example.demo.config.BaseResponseStatus.*;
 import static com.example.demo.utils.ValidationRegex.*;
 
 import java.lang.*;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,14 +36,18 @@ public class UserController {
     private final AuthDao authDao;
     @Autowired
     private final TokenVerify tokenVerify;
+    @Autowired
+    private final S3Service s3Service;
 
 
-    public UserController(UserProvider userProvider, UserService userService, JwtService jwtService, AuthDao authDao, TokenVerify tokenVerify) {
+    public UserController(UserProvider userProvider, UserService userService, JwtService jwtService, AuthDao authDao,
+                          TokenVerify tokenVerify, S3Service s3Service) {
         this.userProvider = userProvider;
         this.userService = userService;
         this.jwtService = jwtService;
         this.authDao = authDao;
         this.tokenVerify = tokenVerify;
+        this.s3Service = s3Service;
     }
 
     /**
@@ -465,6 +472,58 @@ public class UserController {
         try {
             UserWithdrawalRes userWithdrawalRes = userService.UserWithdrawal(userWithdrawalReq);
             return new BaseResponse<>(userWithdrawalRes);
+        } catch (BaseException exception) {
+            return new BaseResponse<>((exception.getStatus()));
+        }
+    }
+
+
+    /**
+     * 프로필 사진 수정 API
+     * [PATCH] /users/profileImage
+     *
+     * @return BaseResponse<UserWithdrawalRes>
+     */
+    @ResponseBody
+    @PatchMapping("/profileImage")
+    public BaseResponse<UserProfileImgRes> PatchProfileImg(@RequestPart("content") Map<String, Long> userIdx,
+                                                           @RequestPart("imgUrl") MultipartFile profileImgUrl) throws BaseException {
+
+        // 유저인덱스 입력하지 않았을 때
+        if (userIdx.get("userIdx") == null) {
+            return new BaseResponse<>(USERS_EMPTY_USER_ID);
+        }
+
+        String first_accessToken = jwtService.getAccessToken();
+        // 토큰 검증
+        String new_accessToken = tokenVerify.checkToken(userIdx.get("userIdx"));
+        String accessToken = null;
+        if(first_accessToken != new_accessToken){
+            accessToken = new_accessToken;
+        }
+
+        // 프로필이미지 입력하지 않았을 때
+        if (profileImgUrl == null) {
+            return new BaseResponse<>(PATCH_USERS_IMGURL_EMPTY);
+        }
+
+        String imgPath = s3Service.profileImgUpload(profileImgUrl);
+
+        try {
+            // db에서 사용자의 profileImg 가져옴
+            String userProfileImg = userProvider.userProfileImg(userIdx.get("userIdx"));
+            if(userProfileImg != "https://withpeace-post.s3.ap-northeast-2.amazonaws.com/profileImg/default_profileImg.png"){
+                // 가져온 profileImg가 기본 이미지 경로가 아닐 경우
+
+                // 이미지 파일 이름 추출
+                int index = userProfileImg.lastIndexOf("/");
+                // S3에 이미지 파일 삭제
+                s3Service.deleteFile(userProfileImg.substring(index+1));
+            }
+
+            // s3에 새로 저장된 프로필 이미지의 경로를 DB에 저장
+            UserProfileImgRes userProfileImgRes = userService.PatchProfileImg(userIdx.get("userIdx"), imgPath, accessToken);
+            return new BaseResponse<>(userProfileImgRes);
         } catch (BaseException exception) {
             return new BaseResponse<>((exception.getStatus()));
         }

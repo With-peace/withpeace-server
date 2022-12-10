@@ -268,4 +268,20 @@ public class UserService {
         }
     }
 
+    /** 프로필 사진 수정 **/
+    @Transactional
+    public UserProfileImgRes PatchProfileImg(Long userIdx, String imgPath, String accessToken) throws BaseException {
+        // 사용자의 userLevel 체크
+        String userLevel = postProvider.getUserLevel(userIdx);
+
+        try{
+            // Patch - User
+            userDao.updateprofileImg(userIdx, imgPath);
+
+            return new UserProfileImgRes(userIdx, userLevel, imgPath, accessToken);
+        } catch (Exception exception) {
+            throw new BaseException(DATABASE_ERROR);
+        }
+    }
+
 }

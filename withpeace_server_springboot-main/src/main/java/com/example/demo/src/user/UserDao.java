@@ -289,6 +289,24 @@ public class UserDao {
         this.jdbcTemplate.update(updateUserWithdrawalQuery, userWithdrawalReq.getUserIdx());
     }
 
+    /** 기존 프로필 이미지 조회 **/
+    public String getProfileImg(Long userIdx){
+        String selectProfileImgQuery =
+                "select profileImgUrl\n" +
+                        "from User\n" +
+                        "where userIdx=?";
+        return this.jdbcTemplate.queryForObject(selectProfileImgQuery, String.class, userIdx);
+    }
+
+    /** 프로필 사진 수정 **/
+    public void updateprofileImg(Long userIdx, String imgPath){
+        String updateprofileImgQuery = "UPDATE User SET profileImgUrl=? WHERE userIdx=?;";
+
+        Object[] updateprofileImgParams = new Object[]{imgPath, userIdx};
+
+        this.jdbcTemplate.update(updateprofileImgQuery, updateprofileImgParams);
+    }
+
 
     public void SaveRefeshTokenUserManager(Long userIdx, String refreshToken){
         String modifyUserNameQuery = "update User set refreshToken = ? where userIdx = ? ";
